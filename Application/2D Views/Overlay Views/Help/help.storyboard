@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="bGQ-i2-wex">
+    <device id="retina6_5" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Help-->
+        <scene sceneID="wb2-jc-scq">
+            <objects>
+                <viewController storyboardIdentifier="HelpViewController" title="Help" useStoryboardIdentifierAsRestorationIdentifier="YES" id="bGQ-i2-wex" customClass="HelpViewController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Q9k-FK-muV">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6sp-4F-46C">
+                                <rect key="frame" x="0.0" y="44" width="414" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="40F-FJ-Dei"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="Sua-2o-Ppo"/>
+                                </constraints>
+                                <items>
+                                    <navigationItem title="Help" id="CWe-vk-ix1">
+                                        <barButtonItem key="leftBarButtonItem" title="Back" id="hsP-rn-6lI">
+                                            <connections>
+                                                <action selector="backButtonHandler:" destination="bGQ-i2-wex" id="eZa-jt-WUa"/>
+                                            </connections>
+                                        </barButtonItem>
+                                    </navigationItem>
+                                </items>
+                            </navigationBar>
+                            <wkWebView contentMode="scaleToFill" allowsLinkPreview="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UtD-hg-IR1">
+                                <rect key="frame" x="0.0" y="94" width="414" height="768"/>
+                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <wkWebViewConfiguration key="configuration" allowsAirPlayForMediaPlayback="NO" allowsPictureInPictureMediaPlayback="NO" suppressesIncrementalRendering="YES">
+                                    <dataDetectorTypes key="dataDetectorTypes"/>
+                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
+                                    <wkPreferences key="preferences"/>
+                                </wkWebViewConfiguration>
+                            </wkWebView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="UtD-hg-IR1" firstAttribute="bottom" secondItem="3z7-Am-YI2" secondAttribute="bottom" id="4Af-Cz-XIN"/>
+                            <constraint firstItem="UtD-hg-IR1" firstAttribute="trailing" secondItem="3z7-Am-YI2" secondAttribute="trailing" id="7ff-hC-fKY"/>
+                            <constraint firstItem="UtD-hg-IR1" firstAttribute="top" secondItem="6sp-4F-46C" secondAttribute="bottom" id="D7i-o1-FMG"/>
+                            <constraint firstItem="6sp-4F-46C" firstAttribute="top" secondItem="3z7-Am-YI2" secondAttribute="top" id="FFg-zb-x1a"/>
+                            <constraint firstItem="6sp-4F-46C" firstAttribute="leading" secondItem="3z7-Am-YI2" secondAttribute="leading" id="TxC-I1-e16"/>
+                            <constraint firstItem="UtD-hg-IR1" firstAttribute="leading" secondItem="3z7-Am-YI2" secondAttribute="leading" id="m6C-jg-lKA"/>
+                            <constraint firstItem="6sp-4F-46C" firstAttribute="trailing" secondItem="3z7-Am-YI2" secondAttribute="trailing" id="quI-xD-Nsn"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="3z7-Am-YI2"/>
+                    </view>
+                    <connections>
+                        <outlet property="backButton" destination="hsP-rn-6lI" id="vG7-vw-5fW"/>
+                        <outlet property="navigationBar" destination="6sp-4F-46C" id="cUs-cK-occ"/>
+                        <outlet property="webView" destination="UtD-hg-IR1" id="d6E-Av-Pkm"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="lDr-eB-nTI" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-47.826086956521742" y="60.267857142857139"/>
+        </scene>
+    </scenes>
+</document>

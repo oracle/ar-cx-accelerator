@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+    </dependencies>
+    <scenes>
+        <!--Node Image Page View Overlay Controller-->
+        <scene sceneID="xf3-1V-8y5">
+            <objects>
+                <pageViewController storyboardIdentifier="NodeImagePageViewOverlayController" autoresizesArchivedViewToFullSize="NO" useStoryboardIdentifierAsRestorationIdentifier="YES" transitionStyle="scroll" navigationOrientation="horizontal" spineLocation="none" id="KTi-dK-JXy" customClass="NodeImagePageViewOverlayController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
+                    <size key="freeformSize" width="640" height="480"/>
+                </pageViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="LER-fG-LcG" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1028" y="-75"/>
+        </scene>
+    </scenes>
+</document>

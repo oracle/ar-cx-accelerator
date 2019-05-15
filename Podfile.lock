@@ -1,0 +1,40 @@
+PODS:
+  - Charts (3.3.0):
+    - Charts/Core (= 3.3.0)
+  - Charts/Core (3.3.0)
+  - JumioMobileSDK (3.1.2):
+    - JumioMobileSDK/JumioMobileSDK (= 3.1.2)
+  - JumioMobileSDK/JumioMobileSDK (3.1.2)
+  - XMLParsing (0.0.3)
+
+DEPENDENCIES:
+  - Charts (from `https://github.com/danielgindi/Charts.git`)
+  - JumioMobileSDK
+  - XMLParsing (from `https://github.com/ShawnMoore/XMLParsing.git`)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - JumioMobileSDK
+
+EXTERNAL SOURCES:
+  Charts:
+    :git: https://github.com/danielgindi/Charts.git
+  XMLParsing:
+    :git: https://github.com/ShawnMoore/XMLParsing.git
+
+CHECKOUT OPTIONS:
+  Charts:
+    :commit: 899fe1d13208ee6c08ce8db790a834f77dc9aee7
+    :git: https://github.com/danielgindi/Charts.git
+  XMLParsing:
+    :commit: 594272e4df40798c53ae1735ee65f3f387291670
+    :git: https://github.com/ShawnMoore/XMLParsing.git
+
+SPEC CHECKSUMS:
+  Charts: 9bb8f627196db66e27338c40806554bc627c6faf
+  JumioMobileSDK: e7235c9f7e38cb5aba2fb2329e87325f97b70caf
+  XMLParsing: 085edb6fa22c71d6b53a79299f990a91e7414d19
+
+PODFILE CHECKSUM: ac110f61c9853c5508a9abb2793e6f9b5d1833f9
+
+COCOAPODS: 1.5.3

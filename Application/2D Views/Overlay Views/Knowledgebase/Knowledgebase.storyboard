@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="n6f-Hu-S6G">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Knowledgebase-->
+        <scene sceneID="01k-2N-FW5">
+            <objects>
+                <viewController storyboardIdentifier="KnowledgebaseViewController" title="Knowledgebase" useStoryboardIdentifierAsRestorationIdentifier="YES" id="n6f-Hu-S6G" customClass="KnowledgebaseViewController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="pJr-Wy-os8">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="W6J-oI-XWj">
+                                <rect key="frame" x="0.0" y="20" width="768" height="44"/>
+                                <items>
+                                    <navigationItem title="Knowledgebase Search" id="m4F-Ym-dFh">
+                                        <barButtonItem key="leftBarButtonItem" title="Back" id="GrA-QR-JkS">
+                                            <connections>
+                                                <action selector="backButtonHandler:" destination="n6f-Hu-S6G" id="F45-l8-dCz"/>
+                                            </connections>
+                                        </barButtonItem>
+                                    </navigationItem>
+                                </items>
+                            </navigationBar>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cDK-1j-Q6N">
+                                <rect key="frame" x="0.0" y="64" width="768" height="2"/>
+                            </progressView>
+                            <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6De-YT-8ZA">
+                                <rect key="frame" x="0.0" y="66" width="768" height="958"/>
+                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <wkWebViewConfiguration key="configuration" allowsAirPlayForMediaPlayback="NO" allowsPictureInPictureMediaPlayback="NO" applicationNameForUserAgent="Knowledgebase">
+                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
+                                    <wkPreferences key="preferences"/>
+                                </wkWebViewConfiguration>
+                            </wkWebView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="cDK-1j-Q6N" firstAttribute="leading" secondItem="pJr-Wy-os8" secondAttribute="leading" id="5Tw-WD-bOV"/>
+                            <constraint firstItem="cDK-1j-Q6N" firstAttribute="top" secondItem="W6J-oI-XWj" secondAttribute="bottom" id="EO2-Vg-pV1"/>
+                            <constraint firstItem="W6J-oI-XWj" firstAttribute="top" secondItem="YZM-dX-hcR" secondAttribute="top" id="Fhw-bg-ysO"/>
+                            <constraint firstAttribute="trailing" secondItem="cDK-1j-Q6N" secondAttribute="trailing" id="NmG-Zy-GAj"/>
+                            <constraint firstItem="6De-YT-8ZA" firstAttribute="leading" secondItem="YZM-dX-hcR" secondAttribute="leading" id="WFQ-RD-2Ty"/>
+                            <constraint firstItem="W6J-oI-XWj" firstAttribute="leading" secondItem="YZM-dX-hcR" secondAttribute="leading" id="aKd-DB-4Y5"/>
+                            <constraint firstItem="6De-YT-8ZA" firstAttribute="top" secondItem="cDK-1j-Q6N" secondAttribute="bottom" id="dTn-Vv-vnc"/>
+                            <constraint firstItem="W6J-oI-XWj" firstAttribute="trailing" secondItem="YZM-dX-hcR" secondAttribute="trailing" id="hWH-ne-9XF"/>
+                            <constraint firstItem="6De-YT-8ZA" firstAttribute="trailing" secondItem="YZM-dX-hcR" secondAttribute="trailing" id="kvR-yh-ly0"/>
+                            <constraint firstItem="cDK-1j-Q6N" firstAttribute="top" secondItem="W6J-oI-XWj" secondAttribute="bottom" id="lcM-F2-bXa"/>
+                            <constraint firstItem="6De-YT-8ZA" firstAttribute="bottom" secondItem="YZM-dX-hcR" secondAttribute="bottom" id="wMN-q0-aeg"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="YZM-dX-hcR"/>
+                    </view>
+                    <nil key="simulatedTopBarMetrics"/>
+                    <size key="freeformSize" width="768" height="1024"/>
+                    <connections>
+                        <outlet property="backButton" destination="GrA-QR-JkS" id="roU-mN-zpU"/>
+                        <outlet property="progressIndicator" destination="cDK-1j-Q6N" id="1Vz-6d-MfV"/>
+                        <outlet property="view" destination="pJr-Wy-os8" id="MTk-y4-f3B"/>
+                        <outlet property="webView" destination="6De-YT-8ZA" id="Ppc-zu-Zv4"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="JLy-hb-mEb" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="67.96875" y="2158.59375"/>
+        </scene>
+    </scenes>
+</document>

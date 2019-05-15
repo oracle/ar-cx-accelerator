@@ -1,0 +1,23 @@
+{
+    "isForEdit" : "false",
+    "recordId" : "E794245714144432B76B17388DC3EF56",
+    "versionId" : "6D0E8B3E792444DF8AF5B555C1F9012B",
+    "documentId" : "MAN1",
+    "title" : "Pump Service Manual",
+    "version" : "4.0",
+    "answerId" : 1003058,
+    "dateModified" : "2018-11-08T19:01:08+0000",
+    "priority" : "PRIORITY_0",
+    "createDate" : "2018-10-24T12:50:59+0000",
+    "lastModifiedDate" : "2018-11-08T19:01:00+0000",
+    "dateAdded" : "2018-11-08T19:01:00+0000",
+    "displayStartDate" : "1900-01-01T00:00:00+0000",
+    "displayEndDate" : "9999-12-31T00:00:00+0000",
+    "published" : "true",
+    "pending" : "false",
+    "publishDate" : "2018-11-08T19:01:07+0000",
+    "checkedOut" : "false",
+    "publishedVersion" : "4.0",
+    "xml" : "<MANUALS><TITLE><![CDATA[Pump Service Manual]]></TITLE><SUMMARY/><URL><![CDATA[blue_pump.pdf]]></URL><DETAILS/></MANUALS>",
+    "resourcePath" : "$STAGING_RESOURCE_HOST_URL/fusion/content/draft/E794245714144432B76B17388DC3EF56/6D0E8B3E792444DF8AF5B555C1F9012B/"
+}

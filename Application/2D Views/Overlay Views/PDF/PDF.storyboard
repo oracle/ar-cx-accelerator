@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Pxw-jD-06P">
+    <device id="ipad11_0rounded" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="Cb8-X1-n83">
+            <objects>
+                <viewController storyboardIdentifier="PDFViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="Pxw-jD-06P" customClass="PDFViewController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="GOu-ix-hxP">
+                        <rect key="frame" x="0.0" y="0.0" width="834" height="1194"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Xnj-54-BS9">
+                                <rect key="frame" x="0.0" y="24" width="834" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="BFZ-p2-z2K"/>
+                                </constraints>
+                                <items>
+                                    <navigationItem title="Manual" id="rov-Fv-fOH">
+                                        <barButtonItem key="leftBarButtonItem" title="Back" id="4RE-os-vLJ">
+                                            <connections>
+                                                <action selector="backButton:" destination="Pxw-jD-06P" id="OL0-hu-WPk"/>
+                                            </connections>
+                                        </barButtonItem>
+                                    </navigationItem>
+                                </items>
+                            </navigationBar>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Oth-au-UwG" customClass="PDFView">
+                                <rect key="frame" x="0.0" y="74" width="834" height="1100"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="Oth-au-UwG" firstAttribute="bottom" secondItem="6Pf-Zu-gS2" secondAttribute="bottom" id="3yB-oO-9RP"/>
+                            <constraint firstItem="Xnj-54-BS9" firstAttribute="top" secondItem="6Pf-Zu-gS2" secondAttribute="top" id="7YI-Rf-C44"/>
+                            <constraint firstItem="Oth-au-UwG" firstAttribute="leading" secondItem="6Pf-Zu-gS2" secondAttribute="leading" id="Bml-7G-78Z"/>
+                            <constraint firstItem="Xnj-54-BS9" firstAttribute="trailing" secondItem="6Pf-Zu-gS2" secondAttribute="trailing" id="I2D-CT-Hsc"/>
+                            <constraint firstItem="Oth-au-UwG" firstAttribute="trailing" secondItem="6Pf-Zu-gS2" secondAttribute="trailing" id="cE6-H5-SDn"/>
+                            <constraint firstItem="Xnj-54-BS9" firstAttribute="leading" secondItem="6Pf-Zu-gS2" secondAttribute="leading" id="saS-QJ-JpK"/>
+                            <constraint firstItem="Oth-au-UwG" firstAttribute="top" secondItem="Xnj-54-BS9" secondAttribute="bottom" id="wpM-DU-Iz7"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Pf-Zu-gS2"/>
+                    </view>
+                    <connections>
+                        <outlet property="backButton" destination="4RE-os-vLJ" id="hfR-tX-5r6"/>
+                        <outlet property="navigationBar" destination="Xnj-54-BS9" id="hoy-N0-DJC"/>
+                        <outlet property="pdfView" destination="Oth-au-UwG" id="rM9-c6-vpn"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="6Zm-WM-EfD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="67.96875" y="2861.71875"/>
+        </scene>
+    </scenes>
+</document>

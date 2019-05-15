@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>FILEHEADER</key>
+	<string>
+// *********************************************************************************************
+//  Copyright © ___YEAR___. Oracle and/or its affiliates. All rights reserved.
+//  Licensed under the Universal Permissive License v 1.0 as shown at
+//  http://oss.oracle.com/licenses/upl
+// *********************************************************************************************
+// Accelerator Package: Augmented CX
+// Date: ___DATE___ ___TIME___
+// Git SHA1: $Id: $
+// *********************************************************************************************
+// File: ___FILENAME___
+// *********************************************************************************************
+// </string>
+</dict>
+</plist>
+

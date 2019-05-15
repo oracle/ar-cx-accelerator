@@ -1,0 +1,13 @@
+{
+    "srId": "12351254123",
+    "srReferenceNumber": "SR123423",
+    "srSubject": "AR Service Request",
+    "srDevice": {
+        "deviceId": "75BBCF7D-7E58-449C-BFD5-DF2E3A9CD6E4",
+        "partId": "pump",
+        "temperature": "497.56 °F",
+        "vibration": "4.60 Hz",
+        "sound": "16.23 dB",
+        "rpm": "1022.9 rpm"
+    }
+}

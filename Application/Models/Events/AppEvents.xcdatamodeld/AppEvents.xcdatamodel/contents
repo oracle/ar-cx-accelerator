@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="14490.99" systemVersion="18E226" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="1.1">
+    <entity name="AppEvent" representedClassName="AppEvent" syncable="YES" codeGenerationType="class">
+        <attribute name="arAnchor" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="arNode" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="eventEnd" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="eventLength" attributeType="Float" defaultValueString="0" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="eventStart" optional="YES" attributeType="Date" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO" syncable="YES"/>
+        <attribute name="jsonData" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="readyToSend" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="screenshot" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="uiElement" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="AppEvent" positionX="-63" positionY="-18" width="128" height="210"/>
+    </elements>
+</model>

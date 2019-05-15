@@ -1,0 +1,55 @@
+{
+    "items": [
+        {
+            "index": 0,
+            "outbound": true,
+            "text": "I see temperature spikes in the pump that I am reviewing."
+        },
+        {
+            "index": 1,
+            "outbound": false,
+            "text": "Ok, have you reviewed the temperature data?  Do you see the prediction for a threshold violation in the future?"
+        },
+        {
+            "index": 2,
+            "outbound": true,
+            "text": "Yes I see them."
+        },
+        {
+            "index": 3,
+            "outbound": false,
+            "text": "Have you performed any maintenance yet?"
+        },
+        {
+            "index": 4,
+            "outbound": true,
+            "text": "No"
+        },
+        {
+            "index": 5,
+            "outbound": false,
+            "text": "Ok, based on the data, you should be able to correct the issue by replacing the washer in the engine assembly. Those procedures are available in your AR experience. In the left context menu, scroll to the bottom to view them."
+        },
+        {
+            "index": 6,
+            "outbound": true,
+            "text": "I see the procedures."
+        },
+        {
+            "index": 7,
+            "outbound": false,
+            "text": "Use the 'teach me' procedure to walk through all of the steps to replace the part. That should resolve the issue."
+        },
+        {
+            "index": 8,
+            "outbound": true,
+            "text": "I will. Thank you for the assistance."
+        },
+        {
+            "index": 9,
+            "outbound": false,
+            "text": "You're welcome. Goodbye. This chat will close.",
+            "endChat": true
+        }
+    ]
+}
