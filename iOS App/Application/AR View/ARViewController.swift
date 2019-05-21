@@ -2284,47 +2284,59 @@ class ARViewController:
      */
     func setSensorTimerState(to on: Bool) {
         #if DEBUG
-        os_log("Setting sensor state: %@", on ? "on" : "off")
+        os_log(.debug, "Setting sensor state: %@", on ? "on" : "off")
         #endif
         
         self.sensorTimer?.invalidate()
         self.sensorTimer = nil
         
-        if on {
-            let userDefaultsInterval = UserDefaults.standard.double(forKey:  SensorConfigs.sensorRequestInterval.rawValue)
-            let interval: Double = userDefaultsInterval >= 2.5 ? userDefaultsInterval : 5.0
-            self.sensorTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { (timer) in
-                if !self.iotRequestInProcess {
-                    self.iotRequestInProcess = true
+        // If the state is off, then there is nothing more to do.
+        guard on else { return }
+        
+        let userDefaultsInterval = UserDefaults.standard.double(forKey:  SensorConfigs.sensorRequestInterval.rawValue)
+        let interval: Double = userDefaultsInterval >= 2.5 ? userDefaultsInterval : 5.0
+        self.sensorTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { (timer) in
+            if !self.iotRequestInProcess {
+                self.iotRequestInProcess = true
+                
+                #if DEBUGIOT
+                os_log(.debug, "Starting sensor request process.")
+                #endif
+                guard let deviceId = self.iotDevice?.id else { return }
+                
+                ICSBroker.shared.getHistoricalDeviceMessages(deviceId, completion: { result in
+                    self.iotRequestInProcess = false
                     
-                    #if DEBUGIOT
-                    os_log("Starting sensor request process.")
-                    #endif
-                    
-                    self.getLastIoTMessage{ message in
+                    switch result {
+                    case .success(let data):
+                        guard let message = data.items?[0] else { return }
+                        self.lastSensorMessage = message
+                        
                         #if DEBUGIOT
-                        os_log("Sensor request completed.")
+                        os_log(.debug, "Sensor request completed.")
                         #endif
-                        
-                        self.iotRequestInProcess = false
-                        
-                        self.updateSensorTextNodes()
-                        
-                        guard let message = message, let NodeContextViewController = self.children.first(where: { $0 is NodeContextViewController }) as? NodeContextViewController else { return }
                         
                         // Display message data
                         DispatchQueue.main.async {
+                            self.updateSensorTextNodes()
+                            
+                            // Add an alert message if required
+                            guard let NodeContextViewController = self.children.first(where: { $0 is NodeContextViewController }) as? NodeContextViewController else { return }
                             NodeContextViewController.addSensorMessage(message)
                         }
+                        
+                        break
+                    case .failure(let failure):
+                        failure.log()
+                        os_log(.error, "Error getting data for sensors")
+                        break
                     }
-                } else {
-                    #if DEBUGIOT
-                    os_log("Sensor request already in process. Skipping scheduled call until it is completed.")
-                    #endif
-                }
+                })
+            } else {
+                #if DEBUGIOT
+                os_log(.debug, "Sensor request already in process. Skipping scheduled call until it is completed.")
+                #endif
             }
-            
-            self.sensorTimer!.fire()
         }
     }
     

@@ -1,12 +1,24 @@
 # Oracle CX Augmented Reality Accelerator
 
+![Image of an AR experience built by extending this example accelerator.](Oracle/images/red-pump.jpg?raw=true "AR UI")
+
+Screenshot of an example AR application built by extending the source code provided in this accelerator.
+
 ## Overview
 
-This accelerator is intended to provide example implementation practices for building Augmented Reality experiences that integrate with Oracle's SaaS CX applications: Service Cloud, Engagement Cloud, and others.
+This accelerator is intended to provide example implementation practices for building Augmented Reality experiences that integrate with Oracle's SaaS CX applications: Service Cloud, Engagement Cloud, and others.  The accelerator can be leveraged to introduce AR into a number of use cases such as field service, self-service, training, and knowledge delivery.  The accelerator includes content for:
+
+1. Defining a convention to map AR model nodes to remote data.
+2. Using IoT data to display asset and device information.
+3. Using IoT data to display real-time and historical sensor information.
+4. Using Service Cloud or Engagement Cloud knowledge to supply PDF manuals and bulletins.
+5. Building step-by-step guided procedures with text, image, and 3D animations that can be declared in JSON (rather than hard-coding them).
+
+#### Important Info
 
 **This project is intended for demonstration use only.  It is not supported by Oracle or Oracle Customer Care.**  
 
-The project does not compile without some programmatic effort, and it omits standard features for a public-facing application such as multi-user authentication and authorization.  Rather, this accelerator is intended to be a starting-point for delivering bespoke solutions that developers may leverage to review integration and interaction paradigms that Oracle is using for AR experiences integrated with CX applications.
+The project does not compile without some programmatic effort. And, it omits standard features for a public-facing application such as multi-user authentication and authorization.  Rather, this accelerator is intended to be a starting-point for delivering bespoke solutions that developers may leverage to review integration and interaction paradigms that Oracle is using for AR experiences integrated with CX applications.
 
 ### Repository Structure
 
@@ -17,11 +29,13 @@ This git repository is structured with the following folders:
 
 ## Implementation
 
-Full implementation documentation may be found on Oracle Tech Net (OTN), which will guide you through the configuration of the Xcode project, setup of Oracle environments, and outline the methodology used to create the project.  The documentation includes:
+Full implementation documentation may be found on Oracle Tech Net (OTN), which will guide you through the configuration of the Xcode project, setup of Oracle environments, and outline the methodology used to create the project.  Following the documentation is important because setup requires proper configuration in a set order of events.
+
+The documentation includes:
 
 1. Prerequisites, audience requirements, hardware requirements, and software requirements.
 2. Configuration and use of the Oracle Integration Cloud flows that are used by the iOS code base.
-3. Basic application use.
+3. Basic application use once compiled.
 
 **Link will be published when Oracle Tech Network articles are live.**
 
@@ -63,7 +77,9 @@ There are a few compiler flags that are used throughout the source code to help 
 3. `DEBUGIOT` is used to output the values of IoT sensors after the data is retrieved from an HTTP request.  This is helpful to see IoT values in logs when debugging the app.
 4. `DEBUGEVENTS` is used to output debugging messages from the event logging classes that send data to CX Infinity and other remote data capture endpoints.
 
-## Third-Party Open-Source Libraries
+## iOS App Third-Party Open-Source Libraries
+
+These third party libraries are leveraged in the iOS application via CocoaPods.
 
 Thanks to these developers for their excellent open-source libraries.  See license file for license attribution.
 
