@@ -29,15 +29,13 @@ This git repository is structured with the following folders:
 
 ## Implementation
 
-Full implementation documentation may be found on Oracle Tech Net (OTN), which will guide you through the configuration of the Xcode project, setup of Oracle environments, and outline the methodology used to create the project.  Following the documentation is important because setup requires proper configuration in a set order of events.
+Full implementation documentation may be found on [Oracle Tech Net (OTN)](https://www.oracle.com/technetwork/indexes/samplecode/accelerator-osvc-2525361.html), which will guide you through the configuration of the Xcode project, setup of Oracle environments, and outline the methodology used to create the project.  Following the documentation is important because setup requires proper configuration in a set order of events.
 
 The documentation includes:
 
 1. Prerequisites, audience requirements, hardware requirements, and software requirements.
 2. Configuration and use of the Oracle Integration Cloud flows that are used by the iOS code base.
 3. Basic application use once compiled.
-
-**Link will be published when Oracle Tech Network articles are live.**
 
 ### Prerequisites
 
