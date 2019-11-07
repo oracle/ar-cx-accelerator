@@ -35,10 +35,6 @@ class CreateServiceRequestViewController: OverlayViewController {
     @IBOutlet weak var contactIdTextField: UITextField!
     @IBOutlet weak var assetIdTextField: UITextField!
     @IBOutlet weak var partIdTextField: UITextField!
-    @IBOutlet weak var tempTextField: UITextField!
-    @IBOutlet weak var soundTextField: UITextField!
-    @IBOutlet weak var vibrationTextField: UITextField!
-    @IBOutlet weak var rpmTextField: UITextField!
     @IBOutlet weak var notesTextField: UITextView!
     @IBOutlet weak var screenshotImageView: UIImageView!
     
@@ -48,6 +44,11 @@ class CreateServiceRequestViewController: OverlayViewController {
      Service request delegate that will take action on SR events.
      */
     weak var delegate: CreateServiceRequestViewControllerDelegate?
+    
+    /**
+     The application ID that the IoT device belong to.
+     */
+    var applicationId: String?
     
     /**
      The IoT Device object used to populate the device ID.
@@ -96,22 +97,10 @@ class CreateServiceRequestViewController: OverlayViewController {
         self.screenshotImageView.image = screenshot
         
         // Populate data
-        guard let serverConfigs = (UIApplication.shared.delegate as? AppDelegate)?.appServerConfigs?.serverConfigs, let deviceId = self.iotDevice?.id else { return }
-        
-        let lastMessageHandler: (SensorMessage) -> () = { lastSensorMessage in
-            guard let data = lastSensorMessage.payload?.data else { return }
-            
-            DispatchQueue.main.async {
-                //TODO: Convert to generic custom fields for service apps so that sensor types do not have to be hard-coded or simply pass the last sensor message for context instead
-                self.tempTextField.text = data["Bearing_Temperature"] != nil ? String(format: "%.2f", data["Bearing_Temperature"]!) : ""
-                self.soundTextField.text = data["Pump_Noise_Level"] != nil ? String(format: "%.2f", data["Pump_Noise_Level"]!) : ""
-                self.vibrationTextField.text = data["Pump_Vibration"] != nil ? String(format: "%.2f", data["Pump_Vibration"]!) : ""
-                self.rpmTextField.text = data["Pump_RPM"] != nil ? String(format: "%.2f", data["Pump_RPM"]!) : ""
-            }
-        }
+        guard let serverConfigs = (UIApplication.shared.delegate as? AppDelegate)?.appServerConfigs?.serverConfigs, let deviceId = self.iotDevice?.id, let applicationId = self.applicationId else { return }
         
         if self.lastSensorMessage == nil {
-            ICSBroker.shared.getHistoricalDeviceMessages(deviceId, completion: { result in
+            (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getHistoricalDeviceMessages(applicationId, deviceId, completion: { result in
                 let showError: () -> () = {
                     DispatchQueue.main.async {
                         let alert = UIAlertController(title: "Error", message: "There was an error getting the latest IoTCS data for the form. You may continue to enter data manually.", preferredStyle: .alert)
@@ -123,19 +112,14 @@ class CreateServiceRequestViewController: OverlayViewController {
                 }
                 
                 switch result {
-                case .success(let data):
-                    guard let items = data.items, items.count > 0 else { showError(); return }
-                    
-                    lastMessageHandler(items[0])
-                    
+                case .failure(let failure):
+                    failure.log()
+                    showError()
                     break
                 default:
-                    showError()
                     break
                 }
             }, limit: 1)
-        } else {
-            lastMessageHandler(self.lastSensorMessage!)
         }
         
         DispatchQueue.main.async {
@@ -157,10 +141,12 @@ class CreateServiceRequestViewController: OverlayViewController {
      - Parameter sender: The button that sent the request
      */
     @IBAction func createHandler(_ sender: UIBarButtonItem) {
+        sender.logClick()
+        
         guard sender == createButton else { return }
         
         #if DEBUG
-        os_log("Creating Service Request")
+        os_log(.debug, "Creating Service Request")
         #endif
         
         self.createButton.isEnabled = false
@@ -168,7 +154,7 @@ class CreateServiceRequestViewController: OverlayViewController {
         createServiceRequest { sr in
             DispatchQueue.main.async {
                 guard let sr = sr, let _ = sr.referenceNumber else {
-                    os_log("SR response is empty")
+                    os_log(.info, "SR response is empty")
                     
                     DispatchQueue.main.async {
                         let alert = UIAlertController(title: "Error", message: "There was an error creating your service request. Please ensure the environment is available and try again.", preferredStyle: .alert)
@@ -221,18 +207,18 @@ class CreateServiceRequestViewController: OverlayViewController {
         sr.device = ARDevice()
         sr.device?.deviceId = device
         sr.device?.partId = self.partIdTextField.text?.replacingOccurrences(of: " ", with: "_")
-        sr.device?.temperature = self.tempTextField.text
-        sr.device?.sound = self.soundTextField.text
-        sr.device?.vibration = self.vibrationTextField.text
-        sr.device?.rpm = self.rpmTextField.text
+        
+        // Store all sensor data in a payload that can be pulled down and parsed regardless of device
+        let encoder = JSONEncoder()
+        sr.device?.sensors = try? String(data: encoder.encode(self.lastSensorMessage?.payload), encoding: .utf8)?.base64Encoded
         
         if let imageData = self.screenshotImageView.image?.scaleImage(toWidth: 640)?.pngData() {
             sr.image = imageData.base64EncodedString()
         }
         
-        ICSBroker.shared.createServiceRequest(with: sr) { result in
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.createServiceRequest(with: sr) { result in
             #if DEBUG
-            os_log("SR Request Completed")
+            os_log(.debug, "SR Request Completed")
             #endif
             
             self.creatingSr = false
@@ -246,7 +232,8 @@ class CreateServiceRequestViewController: OverlayViewController {
             case .success(let data):
                 completion?(data)
                 break
-            default:
+            case .failure(let failure):
+                failure.log()
                 completion?(nil)
                 break
             }

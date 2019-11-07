@@ -1,137 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="qa7-Ri-Vva">
-    <device id="ipad11_0rounded" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15400" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="hzX-ll-A2f">
+    <device id="ipad11_0rounded" orientation="portrait" layout="fullscreen" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15404"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--Overlay Navigation Controller-->
+        <scene sceneID="fzR-tX-NoS">
+            <objects>
+                <navigationController id="hzX-ll-A2f" customClass="OverlayNavigationController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
+                    <size key="freeformSize" width="834" height="1194"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="DNt-H3-F7W">
+                        <rect key="frame" x="0.0" y="0.0" width="834" height="50"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="qa7-Ri-Vva" kind="relationship" relationship="rootViewController" id="qwP-h6-KRn"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="eqj-RL-32R" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="86" y="2158"/>
+        </scene>
         <!--Sensor Data-->
         <scene sceneID="TIj-i6-wOV">
             <objects>
-                <viewController storyboardIdentifier="LineChartViewController" title="Sensor Data" useStoryboardIdentifierAsRestorationIdentifier="YES" id="qa7-Ri-Vva" customClass="LineChartViewController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="WN8-uG-UWW">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                <viewController storyboardIdentifier="LineChartViewController" title="Sensor Data" modalPresentationStyle="overFullScreen" useStoryboardIdentifierAsRestorationIdentifier="YES" id="qa7-Ri-Vva" customClass="LineChartViewController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WN8-uG-UWW">
+                        <rect key="frame" x="0.0" y="0.0" width="834" height="1194"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Itp-g4-Lzk">
-                                <rect key="frame" x="0.0" y="24" width="768" height="50"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="50" id="Ke3-fP-w8G"/>
-                                </constraints>
-                                <items>
-                                    <navigationItem title="Sensor Data" id="tdZ-mm-vTX">
-                                        <barButtonItem key="leftBarButtonItem" title="Back" id="CwR-tD-qfN">
-                                            <connections>
-                                                <action selector="backButtonHandler:" destination="qa7-Ri-Vva" id="yyP-IM-K9s"/>
-                                            </connections>
-                                        </barButtonItem>
-                                    </navigationItem>
-                                </items>
-                            </navigationBar>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4bS-oP-2bq" customClass="LineChartView" customModule="Charts">
-                                <rect key="frame" x="0.0" y="74" width="768" height="878"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="x4k-D8-I2z">
-                                <rect key="frame" x="20" y="960" width="728" height="24"/>
+                            <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hfN-LJ-vgr">
+                                <rect key="frame" x="0.0" y="50" width="834" height="1144"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <subviews>
-                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="i4O-X6-jhO">
-                                        <rect key="frame" x="354" y="2" width="20" height="20"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="20" id="73u-EL-ehk"/>
-                                            <constraint firstAttribute="width" constant="20" id="IQE-uF-yXQ"/>
-                                        </constraints>
-                                    </activityIndicatorView>
-                                    <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UYD-i8-tew">
-                                        <rect key="frame" x="40" y="0.0" width="24" height="24"/>
-                                        <constraints>
-                                            <constraint firstAttribute="width" constant="24" id="DsH-ic-X0W"/>
-                                            <constraint firstAttribute="width" secondItem="UYD-i8-tew" secondAttribute="height" multiplier="1:1" id="FRn-Ah-kWJ"/>
-                                            <constraint firstAttribute="height" constant="24" id="Tw5-Ue-WbQ"/>
-                                        </constraints>
-                                        <state key="normal" title="Live Feed Off" image="LiveDataIcon"/>
-                                        <connections>
-                                            <action selector="liveDataPressHandler:" destination="qa7-Ri-Vva" eventType="touchDown" id="451-op-7Hy"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="I20-vo-ew5">
-                                        <rect key="frame" x="8" y="0.0" width="24" height="24"/>
-                                        <constraints>
-                                            <constraint firstAttribute="width" secondItem="I20-vo-ew5" secondAttribute="height" multiplier="1:1" id="Bav-uY-s0k"/>
-                                        </constraints>
-                                        <state key="normal" title="Recent" image="HistoricalDataIcon"/>
-                                        <connections>
-                                            <action selector="historicalDataPressHandler:" destination="qa7-Ri-Vva" eventType="touchDown" id="nb6-CH-i5E"/>
-                                        </connections>
-                                    </button>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Live Data On" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iu0-uK-ogu">
-                                        <rect key="frame" x="72" y="5" width="73" height="15"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="15" id="dCM-AG-PvR"/>
-                                            <constraint firstAttribute="width" constant="73" id="pHL-Bv-PgL"/>
-                                        </constraints>
-                                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                        <color key="textColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
+                                    <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4bS-oP-2bq" customClass="LineChartView" customModule="Charts">
+                                        <rect key="frame" x="0.0" y="8" width="834" height="1084"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    </view>
+                                    <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="x4k-D8-I2z" userLabel="Controls View">
+                                        <rect key="frame" x="20" y="1109" width="794" height="24"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                        <subviews>
+                                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="i4O-X6-jhO">
+                                                <rect key="frame" x="354" y="2" width="20" height="20"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            </activityIndicatorView>
+                                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UYD-i8-tew">
+                                                <rect key="frame" x="40" y="0.0" width="24" height="24"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <state key="normal" title="Live Feed Off" image="LiveDataIcon"/>
+                                                <connections>
+                                                    <action selector="liveDataPressHandler:" destination="qa7-Ri-Vva" eventType="touchDown" id="451-op-7Hy"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="I20-vo-ew5">
+                                                <rect key="frame" x="8" y="0.0" width="24" height="24"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <state key="normal" title="Recent" image="HistoricalDataIcon"/>
+                                                <connections>
+                                                    <action selector="historicalDataPressHandler:" destination="qa7-Ri-Vva" eventType="touchDown" id="nb6-CH-i5E"/>
+                                                </connections>
+                                            </button>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Live Data On" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iu0-uK-ogu">
+                                                <rect key="frame" x="72" y="5" width="73" height="15"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                                <color key="textColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                        </subviews>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    </view>
                                 </subviews>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <constraints>
-                                    <constraint firstItem="I20-vo-ew5" firstAttribute="top" secondItem="x4k-D8-I2z" secondAttribute="top" id="0L8-P9-hMj"/>
-                                    <constraint firstItem="UYD-i8-tew" firstAttribute="top" secondItem="x4k-D8-I2z" secondAttribute="top" id="9ZU-W0-7rW"/>
-                                    <constraint firstItem="i4O-X6-jhO" firstAttribute="top" secondItem="x4k-D8-I2z" secondAttribute="top" constant="2" id="C2A-2C-gnO"/>
-                                    <constraint firstItem="iu0-uK-ogu" firstAttribute="top" secondItem="x4k-D8-I2z" secondAttribute="top" constant="5" id="K9Y-Lv-Ejo"/>
-                                    <constraint firstAttribute="bottom" secondItem="iu0-uK-ogu" secondAttribute="bottom" constant="4" id="LOS-eS-i3M"/>
-                                    <constraint firstAttribute="bottom" secondItem="UYD-i8-tew" secondAttribute="bottom" id="O74-0D-6I3"/>
-                                    <constraint firstItem="i4O-X6-jhO" firstAttribute="centerX" secondItem="x4k-D8-I2z" secondAttribute="centerX" id="ORE-Nd-0Ij"/>
-                                    <constraint firstAttribute="bottom" secondItem="I20-vo-ew5" secondAttribute="bottom" id="StL-h2-9uJ"/>
-                                    <constraint firstItem="i4O-X6-jhO" firstAttribute="centerY" secondItem="x4k-D8-I2z" secondAttribute="centerY" id="efS-a1-fb4"/>
-                                    <constraint firstItem="iu0-uK-ogu" firstAttribute="leading" secondItem="UYD-i8-tew" secondAttribute="trailing" constant="8" id="inV-jE-H1g"/>
-                                    <constraint firstAttribute="bottom" secondItem="i4O-X6-jhO" secondAttribute="bottom" constant="2" id="j1u-ni-QNj"/>
-                                    <constraint firstItem="UYD-i8-tew" firstAttribute="leading" secondItem="I20-vo-ew5" secondAttribute="trailing" constant="8" id="j32-2g-PXx"/>
-                                    <constraint firstItem="I20-vo-ew5" firstAttribute="leading" secondItem="x4k-D8-I2z" secondAttribute="leading" constant="8" id="rxI-c8-ZAV"/>
-                                    <constraint firstAttribute="height" constant="24" id="wlz-uX-98v"/>
-                                </constraints>
                             </view>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <constraints>
-                            <constraint firstItem="hm9-qP-f2v" firstAttribute="bottom" secondItem="x4k-D8-I2z" secondAttribute="bottom" constant="20" id="5Lr-Z9-uCm"/>
-                            <constraint firstItem="Itp-g4-Lzk" firstAttribute="top" secondItem="hm9-qP-f2v" secondAttribute="top" id="6rr-uE-lfV"/>
-                            <constraint firstItem="Itp-g4-Lzk" firstAttribute="centerX" secondItem="WN8-uG-UWW" secondAttribute="centerX" id="8qs-c2-cBs"/>
-                            <constraint firstItem="Itp-g4-Lzk" firstAttribute="trailing" secondItem="hm9-qP-f2v" secondAttribute="trailing" id="AoF-2O-aMU"/>
-                            <constraint firstItem="4bS-oP-2bq" firstAttribute="leading" secondItem="hm9-qP-f2v" secondAttribute="leading" id="BR1-HI-ZvL"/>
-                            <constraint firstItem="4bS-oP-2bq" firstAttribute="centerX" secondItem="WN8-uG-UWW" secondAttribute="centerX" id="Jqt-Xo-J64"/>
-                            <constraint firstItem="4bS-oP-2bq" firstAttribute="trailing" secondItem="hm9-qP-f2v" secondAttribute="trailing" id="Khn-EH-2py"/>
-                            <constraint firstItem="x4k-D8-I2z" firstAttribute="top" secondItem="4bS-oP-2bq" secondAttribute="bottom" constant="8" id="LGF-aI-Tac"/>
-                            <constraint firstItem="hm9-qP-f2v" firstAttribute="trailing" secondItem="x4k-D8-I2z" secondAttribute="trailing" constant="20" id="Tkn-ka-T4o"/>
-                            <constraint firstItem="4bS-oP-2bq" firstAttribute="top" secondItem="Itp-g4-Lzk" secondAttribute="bottom" id="UlB-jZ-kwr"/>
-                            <constraint firstItem="Itp-g4-Lzk" firstAttribute="top" secondItem="hm9-qP-f2v" secondAttribute="top" id="aOw-Q5-yXj"/>
-                            <constraint firstItem="x4k-D8-I2z" firstAttribute="leading" secondItem="hm9-qP-f2v" secondAttribute="leading" constant="20" id="abP-xv-9jB"/>
-                            <constraint firstItem="Itp-g4-Lzk" firstAttribute="leading" secondItem="hm9-qP-f2v" secondAttribute="leading" id="b7C-Gg-7GR"/>
-                            <constraint firstItem="Itp-g4-Lzk" firstAttribute="leading" secondItem="hm9-qP-f2v" secondAttribute="leading" id="ciF-7S-jUm"/>
-                            <constraint firstItem="x4k-D8-I2z" firstAttribute="centerX" secondItem="WN8-uG-UWW" secondAttribute="centerX" id="hlr-Cb-iw6"/>
-                            <constraint firstItem="4bS-oP-2bq" firstAttribute="top" secondItem="Itp-g4-Lzk" secondAttribute="bottom" id="jUi-y7-WeR"/>
-                            <constraint firstItem="4bS-oP-2bq" firstAttribute="top" secondItem="Itp-g4-Lzk" secondAttribute="bottom" id="pc0-mU-Hh1"/>
-                            <constraint firstItem="Itp-g4-Lzk" firstAttribute="trailing" secondItem="hm9-qP-f2v" secondAttribute="trailing" id="uYJ-yd-nrE"/>
-                        </constraints>
-                        <viewLayoutGuide key="safeArea" id="hm9-qP-f2v"/>
+                        <color key="backgroundColor" name="OverlayBackgroundColor"/>
+                        <viewLayoutGuide key="safeArea" id="7OR-cp-xz5"/>
                     </view>
-                    <size key="freeformSize" width="768" height="1024"/>
+                    <navigationItem key="navigationItem" id="0zA-gj-wRZ">
+                        <barButtonItem key="leftBarButtonItem" title="Back" id="CwR-tD-qfN">
+                            <connections>
+                                <action selector="backButtonHandler:" destination="qa7-Ri-Vva" id="yyP-IM-K9s"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
-                        <outlet property="backButton" destination="CwR-tD-qfN" id="cX9-LV-xWR"/>
                         <outlet property="historicalDataButton" destination="I20-vo-ew5" id="Ou2-aj-DPj"/>
                         <outlet property="lineChartView" destination="4bS-oP-2bq" id="0ab-ui-IFN"/>
                         <outlet property="liveDataButton" destination="UYD-i8-tew" id="KRM-kO-Ymo"/>
                         <outlet property="liveDataOnLabel" destination="iu0-uK-ogu" id="x9o-0e-Zq7"/>
-                        <outlet property="navigationBar" destination="Itp-g4-Lzk" id="OVy-yF-gk2"/>
                         <outlet property="predictionActivityIndicator" destination="i4O-X6-jhO" id="sIM-ue-P4P"/>
                         <outlet property="view" destination="WN8-uG-UWW" id="56P-qH-C8D"/>
+                        <outlet property="wrapperView" destination="hfN-LJ-vgr" id="1Gf-qx-bGL"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="orb-pE-xyc" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -140,7 +105,10 @@
         </scene>
     </scenes>
     <resources>
-        <image name="HistoricalDataIcon" width="256" height="256"/>
-        <image name="LiveDataIcon" width="256" height="256"/>
+        <image name="HistoricalDataIcon" width="128" height="128"/>
+        <image name="LiveDataIcon" width="128" height="128"/>
+        <namedColor name="OverlayBackgroundColor">
+            <color red="0.0" green="0.0" blue="0.0" alpha="0.69999998807907104" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>

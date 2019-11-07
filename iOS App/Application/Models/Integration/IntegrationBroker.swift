@@ -32,6 +32,15 @@ enum IntegrationBrokerError: Error {
 }
 
 /**
+ Errors that can be thrown by methods in this class
+ */
+enum IntegrationError: Error {
+    case communicationFailure,
+    invalidServiceApp,
+    invalidServerConfigs
+}
+
+/**
  Defines prototype functions that all integration brokers should implement.
  */
 protocol IntegrationBroker {
@@ -77,27 +86,30 @@ extension IntegrationBroker {
     
     func asyncHttpRequest(session: URLSession, request: URLRequest, completion: @escaping IntegrationCompletion) {
         #if DEBUGNETWORK
-        os_log(request.url ?? "No URL in HTTP request")
+        os_log(.debug, "%@", request.url?.absoluteString ?? "No URL in HTTP request")
         #endif
         
         let task = session.dataTask(with: request) { (data, response, error) in
             guard let data = data else {
-                os_log("Data not returned from URL request")
+                os_log(.error, "Data not returned from URL request")
                 completion(.failure(.noDataReturned))
                 return
             }
             guard error == nil else {
                 error?.log()
+                os_log(.error, "%@", String(data: data, encoding: .utf8)!)
                 completion(.failure(.errorReturned(error!)))
                 return
             }
             guard let httpResponse = response as? HTTPURLResponse else {
-                os_log("URL response not returned as HTTP response")
+                os_log(.error, "URL response not returned as HTTP response")
+                os_log(.error, "%@", String(data: data, encoding: .utf8)!)
                 completion(.failure(.invalidHttpResponse))
                 return
             }
             guard (200..<300).contains(httpResponse.statusCode) else {
-                os_log("HTTP Response Code: %d\nFor URL: %@", httpResponse.statusCode, request.url?.absoluteString ?? "No URL")
+                os_log(.error, "HTTP Response Code: %d\nFor URL: %@", httpResponse.statusCode, request.url?.absoluteString ?? "No URL")
+                os_log(.error, "%@", String(data: data, encoding: .utf8)!)
                 completion(.failure(.invalidHttpStatus(httpResponse.statusCode)))
                 return
             }
@@ -132,7 +144,7 @@ extension IntegrationBroker {
     func jsonDataHandler <T: Decodable>(decodableType: T.Type, data: Data?) -> T? {        
         guard let data = data else {
             #if DEBUG
-            os_log("No data returned with the request.")
+            os_log(.debug, "No data returned with the request.")
             #endif
             
             return nil
@@ -140,7 +152,7 @@ extension IntegrationBroker {
         
         #if DEBUGNETWORK
         if let json = String(data: data, encoding: .utf8) {
-            os_log(json)
+            os_log(.debug, "%@", json)
         }
         #endif
         
@@ -151,7 +163,7 @@ extension IntegrationBroker {
             let object = try jsonDecoder.decode(T.self, from: data)
             
             #if DEBUGNETWORK
-            os_log("Get \(objectStr) Successful:\n%@", String(data: data, encoding: .utf8) ?? "")
+            os_log(.debug, "Get %@ Successful:\n%@", objectStr, String(data: data, encoding: .utf8) ?? "")
             #endif
             
             return object

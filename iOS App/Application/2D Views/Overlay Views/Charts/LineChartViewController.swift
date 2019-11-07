@@ -15,7 +15,7 @@ import UIKit
 import Charts
 import os
 
-class LineChartViewController: OverlayViewController, ChartViewDelegate {
+class LineChartViewController: UIViewController, ChartViewDelegate {
     
     // MARK: - Enums
     
@@ -29,8 +29,7 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
     
     // MARK: - IBOutlets
     
-    @IBOutlet weak var navigationBar: UINavigationBar!
-    @IBOutlet weak var backButton: UIBarButtonItem!
+    @IBOutlet weak var wrapperView: UIView!
     @IBOutlet weak var lineChartView: LineChartView!
     @IBOutlet weak var historicalDataButton: UIButton!
     @IBOutlet weak var liveDataButton: UIButton!
@@ -38,6 +37,11 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
     @IBOutlet weak var predictionActivityIndicator: UIActivityIndicatorView!
     
     // MARK: - Properties
+    
+    /**
+     The application ID that the IoT device belong to.
+     */
+    var applicationId: String?
     
     /**
      The IoT device ID for the sensor that we are pulling data for.
@@ -125,7 +129,10 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.navigationBar.items?[0].title = self.title
+        self.title = self.title?.replacingOccurrences(of: "_", with: " ").firstUppercased
+        
+        self.view.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? .white : .black
+        self.wrapperView.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? .white : .black
         
         // Set button opacity so we can add animations
         self.historicalDataButton.alpha = 0
@@ -149,7 +156,7 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
         activityVc.view.backgroundColor = UIColor(displayP3Red: 0, green: 0, blue: 0, alpha: 0.75)
         activityVc.activityLabel.text = "Getting Device Data"
         
-        ICSBroker.shared.getDeviceInfo(deviceId) { result in
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getDeviceInfo(deviceId) { result in
             var deviceInfo: IoTDevice?
             
             switch result {
@@ -188,10 +195,10 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
             
             DispatchQueue.main.async {
                 self.lineChartView.leftAxis.addLimitLine(limitLine)
+                
+                // Show the messages
+                self.showDataSet(.historicalData)
             }
-            
-            // Show the messages
-            self.showDataSet(.historicalData)
         }
     }
     
@@ -203,33 +210,28 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
             let alert = UIAlertController(title: "No Data", message: "The IoT device or sensor key is not set. If this error appears, please contact the developer to correct the issue. This overlay will close", preferredStyle: .alert)
             let action = UIAlertAction(title: "OK", style: .default) { (action) in
                 DispatchQueue.main.async {
-                    self.overlayDelegate?.closeRequested(sender: self.view)
+                    guard let parent = self.parent as? OverlayNavigationController else { return }
+                    parent.overlayDelegate?.closeRequested(sender: parent.view)
                 }
             }
             alert.addAction(action)
             self.present(alert, animated: true, completion: nil)
         }
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        self.sensorTimer?.invalidate() // Ensure that the timer is invalidated before closing view.
-    }
     
     // MARK: - IBActions
     
     @IBAction func backButtonHandler(_ sender: UIBarButtonItem) {
-        overlayDelegate?.closeRequested(sender: self.view)
+        sender.logClick()
+        
+        guard let navVc = self.parent as? OverlayNavigationController else { return }
+        navVc.overlayDelegate?.closeRequested(sender: navVc.view)
     }
     
     @IBAction func historicalDataPressHandler(_ sender: UIButton) {
         guard sender === self.historicalDataButton else { return }
+        
+        sender.logClick()
         
         let index = lineChartView.data?.dataSets.firstIndex(where: { $0.label == DataSetLabel.historicalData.rawValue })
         
@@ -242,6 +244,8 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
     
     @IBAction func liveDataPressHandler(_ sender: UIButton) {
         guard sender === self.liveDataButton else { return }
+        
+        sender.logClick()
         
         DispatchQueue.main.async {
             let dataSet = self.lineChartView.data?.dataSets.first(where: { $0.label == DataSetLabel.liveData.rawValue })
@@ -269,9 +273,11 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
      - Parameter highlight: The highlight class to apply to the selected entry.
     */
     func chartValueSelected(_ chartView: ChartViewBase, entry: ChartDataEntry, highlight: Highlight) {
-        let marker = SensorBalloonMarker(color: .lightGray, font: UIFont(name: "Helvetica", size: 12)!, textColor: .black, insets: UIEdgeInsets(top: 7.0, left: 7.0, bottom: 20.0, right: 7.0))
+        let marker = SensorBalloonMarker(color: .lightGray, font: UIFont.systemFont(ofSize: 12), textColor: .black, insets: UIEdgeInsets(top: 7.0, left: 7.0, bottom: 20.0, right: 7.0))
         marker.refreshContent(entry: entry, highlight: highlight)
         chartView.marker = marker
+        
+        AppEventRecorder.shared.record(name: "Chart Value Pressed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: String(describing: type(of: marker)), arAnchor: nil, arNode: nil, jsonString: #"{"value": "\#(entry.y)"}"#, completion: nil)
     }
     
     // MARK: - Chart Data Methods
@@ -284,7 +290,7 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
     private func showDataSet(_ label: DataSetLabel) {
         guard lineChartView.data?.dataSets.first(where: { $0.label == label.rawValue }) == nil else {
             #if DEBUGIOT
-            os_log("data already visible")
+            os_log(.debug, "data already visible")
             #endif
             return
         }
@@ -301,7 +307,7 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
                 guard let messages = messages else { return }
                 
                 for (index, message) in messages.enumerated() {
-                    guard let value = message.payload?.data?[self.sensor!.name!] else { continue }
+                    guard let value = message.payload?.data?[self.sensor!.name!] as? Double else { continue }
                     
                     let chartDataEntry = ChartDataEntry(x: Double(index), y: value)
                     chartDataEntry.data = message as AnyObject
@@ -399,10 +405,10 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
      - Parameter completion: Completion method to call after the request process is finished.
      */
     private func getHistoricalData(completion: @escaping ([SensorMessage]?) -> ()) {
-        guard let deviceId = self.deviceId else { return }
+        guard let deviceId = self.deviceId, let appId = self.applicationId else { return }
         
         #if DEBUGIOT
-        os_log("Getting historical data from IoTCS")
+        os_log(.debug, "Getting historical data from IoTCS")
         #endif
         
         guard let activityVc = UIStoryboard(name: "ActivityOverlay", bundle: nil).instantiateInitialViewController() as? ActivityOverlayViewController else { return }
@@ -414,7 +420,7 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
             activityVc.activityLabel.text = "Getting Historical Data"
         }
         
-        ICSBroker.shared.getHistoricalDeviceMessages(deviceId, completion: { result in
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getHistoricalDeviceMessages(appId, deviceId, completion: { result in
             DispatchQueue.main.async {
                 activityVc.view.removeFromSuperview()
                 activityVc.removeFromParent()
@@ -451,9 +457,10 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
      */
     private func setLiveDataTimer(_ on: Bool = true) {
         guard let deviceId = self.deviceId else { return }
+        guard let appId = self.applicationId else { return }
         
         #if DEBUGIOT
-        os_log("Setting timer on state to: %@", on ? "on" : "off")
+        os_log(.debug, "Setting timer on state to: %@", on ? "on" : "off")
         #endif
         
         // Timer will be on main thread, so invalidate it there.
@@ -489,7 +496,7 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
                     if !self.iotRequestInProcess {
                         self.iotRequestInProcess = true
                         
-                        ICSBroker.shared.getHistoricalDeviceMessages(deviceId, completion: { result in
+                        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getHistoricalDeviceMessages(appId, deviceId, completion: { result in
                             self.iotRequestInProcess = false
                             
                             var message: SensorMessage?
@@ -536,7 +543,6 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
                             // Remove from historical data
                             if historicalDataSet.entryCount > 0 {
                                 let _ = historicalDataSet.removeFirst()
-                                
                                 scaleDownDataSet(historicalDataSet)
                             }
                             
@@ -556,7 +562,7 @@ class LineChartViewController: OverlayViewController, ChartViewDelegate {
                             
                             scaleDownDataSet(liveDataSet)
                             
-                            guard let value = message!.payload?.data?[self.sensor!.name!] else { return }
+                            guard let value = message!.payload?.data?[self.sensor!.name!] as? Double else { return }
                             
                             let liveDataXOffset = Double(historicalDataSet.entryCount) + Double(liveDataSet.entryCount)
                             let newChartEntry = ChartDataEntry(x: (liveDataXOffset + Double(liveDataSet.entryCount)), y: value)

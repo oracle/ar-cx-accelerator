@@ -113,7 +113,7 @@ extension SCNAction {
                 node.geometry!.materials.insert(newMaterial, at: 0)
                 
                 #if DEBUG
-                os_log("Added new material to node: %@", node.name!)
+                os_log(.debug, "Added new material to node: %@", node.name!)
                 #endif
                 
                 return
@@ -149,7 +149,7 @@ extension SCNAction {
             guard let index = node.geometry?.materials.firstIndex(of: pulseMaterial), index > -1 else { return }
             
             #if DEBUG
-            os_log("Removing material at index: %d", index)
+            os_log(.debug, "Removing material at index: %d", index)
             #endif
             
             node.geometry?.removeMaterial(at: index)

@@ -12,6 +12,7 @@
 // 
 
 import UIKit
+import os
 
 class ServiceRequestDetailsViewController: UIViewController {
     
@@ -22,10 +23,6 @@ class ServiceRequestDetailsViewController: UIViewController {
     @IBOutlet weak var subjectLabel: UILabel!
     @IBOutlet weak var deviceIdLabel: UILabel!
     @IBOutlet weak var partIdLabel: UILabel!
-    @IBOutlet weak var temperatureLabel: UILabel!
-    @IBOutlet weak var soundLabel: UILabel!
-    @IBOutlet weak var vibrationLabel: UILabel!
-    @IBOutlet weak var rpmLabel: UILabel!
     
     // MARK: - Properties
     
@@ -55,7 +52,7 @@ class ServiceRequestDetailsViewController: UIViewController {
         self.overlayVc = overlay
         
         if overlay.isViewLoaded {
-            overlay.view.backgroundColor = .gray
+            overlay.view.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? .white : .black
             overlay.setLabel("Select Service Request")
             overlay.activityIndicator.stopAnimating()
         }
@@ -123,39 +120,41 @@ class ServiceRequestDetailsViewController: UIViewController {
         
         self.selectedServiceRequest = request
         
-        ICSBroker.shared.getServiceRequest(id, completion: { result in
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getServiceRequest(id, completion: { result in
             DispatchQueue.main.async {
                 self.removeOverlay()
-            }
-            
-            let showError: () -> () = {
-                DispatchQueue.main.async {
+                
+                let showError: () -> () = {
                     let alert = UIAlertController(title: "Error", message: "There was an error getting SR details. Please try again.", preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action) in
                         // Do something when alert finished
                     }))
                     self.present(alert, animated: true)
                 }
-            }
-            
-            switch result {
-            case .success(let data):
-                DispatchQueue.main.async {
+                
+                switch result {
+                case .success(let data):
                     self.serviceRequestIdLabel.text = data.id
                     self.referenceNumberLabel.text = data.referenceNumber
                     self.subjectLabel.text = data.subject
                     self.deviceIdLabel.text = data.device?.deviceId
                     self.partIdLabel.text = data.device?.partId
-                    self.temperatureLabel.text = data.device?.temperature
-                    self.soundLabel.text = data.device?.sound
-                    self.vibrationLabel.text = data.device?.vibration
-                    self.rpmLabel.text = data.device?.rpm
+                    
+                    //TODO: Update the UI to use the data from the sensor payload as opposed to the hard-coded sensors above.
+                    if let sensorPayload = data.device?.sensors?.base64Decoded {
+                        os_log(.debug, "%@", sensorPayload)
+                        let decoder = JSONDecoder()
+                        //Change below to a variable and do something with it.
+                        let _ = try? decoder.decode(SensorMessage.SensorPayload.self, from: Data(base64Encoded: data.device!.sensors!)!)
+                        os_log(.debug, "%@", "Payload Extracted")
+                    }
+                    
+                    break
+                case .failure(let failure):
+                    failure.log()
+                    showError()
+                    break
                 }
-                
-                break
-            default:
-                showError()
-                break
             }
         })
     }
@@ -172,9 +171,5 @@ class ServiceRequestDetailsViewController: UIViewController {
         self.referenceNumberLabel.text = ""
         self.subjectLabel.text = ""
         self.deviceIdLabel.text = ""
-        self.temperatureLabel.text = ""
-        self.soundLabel.text = ""
-        self.vibrationLabel.text = ""
-        self.rpmLabel.text = ""
     }
 }

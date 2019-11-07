@@ -67,6 +67,11 @@ struct ARNodeContext: Decodable {
      */
     var sensors: [ARSensor]?
     
+    /**
+     An array of notes that have been collected specifically for this node.
+    */
+    var notes: [Note]?
+    
     // MARK: - Structs
     
     /**
@@ -153,6 +158,17 @@ struct ARNodeContext: Decodable {
                 url = try? container.decode(String.self, forKey: CodingKeys.url)
             }
         }
+    }
+    
+    //MARK: - Methods
+    
+    /**
+     Sets the notes property to an array of notes.
+     
+     - Parameter notes: An array of notes.
+    */
+    mutating func setNotes(_ notes: [Note]?) {
+        self.notes = notes
     }
 }
 

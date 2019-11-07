@@ -11,6 +11,9 @@
 // *********************************************************************************************
 // 
 
+//TODO: Remove these structs and replace with 1:1 objects for Service Cloud and Engagement Cloud APIs
+// This unified approach works well for simple demos, but has become a blocker for more advanced integration approaches.
+// This file is still used.  Do not remove until the OSvC and Engagement Cloud implementations are completed.
 import Foundation
 
 /**
@@ -19,6 +22,7 @@ import Foundation
 struct ARDevice : Codable {
     var deviceId: String?
     var partId: String?
+    var sensors: String? // field to store the full sensor JSON payload
     var temperature: String?
     var vibration: String?
     var sound: String?
@@ -43,7 +47,7 @@ struct ServiceRequestRequest : Encodable {
 /**
  Struct to represent the ServiceRequestResponse JSON object returned from ICS
  */
-struct ServiceRequestResponse : Decodable {
+struct ServiceRequestResponse : Decodable, Comparable {
     struct Contact : Decodable {
         var id: String? // Could be a string in Engagement Cloud
         var firstName: String?
@@ -62,6 +66,17 @@ struct ServiceRequestResponse : Decodable {
         subject = "srSubject",
         contact = "srContact",
         device = "srDevice"
+    }
+    
+    
+    static func < (lhs: ServiceRequestResponse, rhs: ServiceRequestResponse) -> Bool {
+        guard let lid = lhs.id, let rid = rhs.id else { return false }
+        return lid < rid
+    }
+    
+    static func == (lhs: ServiceRequestResponse, rhs: ServiceRequestResponse) -> Bool {
+        guard let lid = lhs.id, let rid = rhs.id else { return false }
+        return lid == rid
     }
 }
 

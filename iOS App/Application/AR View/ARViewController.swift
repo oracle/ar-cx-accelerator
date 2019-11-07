@@ -9,12 +9,11 @@
 // *********************************************************************************************
 // File: ARViewController.swift
 // *********************************************************************************************
-// 
+//
 
 import UIKit
 import SceneKit
 import ARKit
-import CoreLocation
 import os
 
 class ARViewController:
@@ -23,119 +22,102 @@ class ARViewController:
     SKSceneDelegate,
     UIGestureRecognizerDelegate,
     UISplitViewControllerDelegate,
-    CLLocationManagerDelegate,
     OverlayControllerDelegate,
     AppServerConfigsDelegate,
     NodeContextDelegate,
     ProceduresViewControllerDelegate,
-    ApplicationButtonsViewControllerDelegate{
+    ApplicationButtonsViewControllerDelegate
+{
+    
     
     // MARK: - IBOutlets
 
-    /**
-     Reference to the sceneView built in Interface Builder
-    */
+    /// Reference to the sceneView built in Interface Builder
     @IBOutlet weak var sceneView: ARSCNView!
     
     // MARK: - Properties
-    
-    /**
-     The context data for the object/image that was last recognized by ARKit
-     */
+
+    /// The context data for the object/image that was last recognized by ARKit
     private var activeRecognitionContext: ARRecognitionContext?
-    
-    /**
-     The name of the primary asset node that was loaded into the scene via recognition.
-     */
+
+    /// The name of the primary asset node that was loaded into the scene via recognition.
     private var activeNodeName: String?
     
-    /**
-     The current device ID of the IoT device that has been recognized.
-     */
-    private(set) var deviceId: String?
-    
-    /**
-     Parameter to cache the starting position of the model parts so that we can move them back if needed.
-     */
+    /// Parameter to cache the starting angles of the model parts so that we can move them back if needed.
+    private var nodesOriginatingAngles: [String: SCNVector3]?
+
+    /// Parameter to cache the starting position of the model parts so that we can move them back if needed.
     private var nodesOriginatingPositions: [String: SCNVector3]?
-    
-    /**
-     The image placement spritekit scene
-     */
+
+    /// Parameter to cache the starting opacity of the model parts so that we can move them back if needed.
+    private var nodesOriginatingOpacities: [String: CGFloat]?
+
+    /// The image placement spritekit scene
     private lazy var imagePlacementScene: SKScene? = {
         return SKScene(fileNamed: "ImagePlacementScene.sks")
     }()
-    
-    /**
-     A dictionary to store the sensor settings for nodes as they are retreived remotely.  This cache prevents the need for repetative sensor calls as node selection changes.
-     */
+
+    /// The help spritekit scene
+    private lazy var modelHelpScene: SKScene? = {
+        return SKScene(fileNamed: "ModelHelpScene.sks")
+    }()
+
+    /// The parts help spritekit scene
+    private lazy var modelPartsHelpScene: SKScene? = {
+        return SKScene(fileNamed: "ModelPartsHelpScene.sks")
+    }()
+
+    /// A dictionary to store the sensor settings for nodes as they are retreived remotely.  This cache prevents the need for repetative sensor calls as node selection changes.
     private var nodeSensorCache: [String: [ARSensor]] = [:]
-    
-    /**
-     Variable indicating if the root asset child nodes are currently in an position that is different from their origin.
-     */
+
+    /// Variable indicating if the root asset child nodes are currently in an position that is different from their origin.
     private var partsExposed: Bool = false
-    
-    /**
-     Variable indicating if parts are currently animating
-     */
+
+    /// Variable indicating if parts are currently animating
     private var animatingParts: Bool = false
-    
-    /**
-     Flag to indicate if all touch gestures should be enabled or disabled in the AR view.
-     */
+
+    /// Flag to indicate if all touch gestures should be enabled or disabled in the AR view.
     private var gesturesEnabled: Bool = true
-    
-    /**
-     Flag to indicate if all animations should be enabled or disabled in the AR view.  This is helpful when the user has moved a node outside of its normal boundaries and an animation against the node would not play accurately because of its position.
-     */
+
+    /// Flag to indicate if all animations should be enabled or disabled in the AR view.  This is helpful when the user has moved a node outside of its normal boundaries and an animation against the node would not play accurately because of its position.
     private var animationsEnabled: Bool = true
-    
-    /**
-     Variable to indicate if an IoT request is in process.
-     */
-    private var iotRequestInProcess: Bool = false
-    
-    /**
-     Variable to store the IoT device that was pulled from ICSBroker.
-     */
+
+    /// Flag that will block alerts that beacons have been found.
+    private var blockBeaconAlerts: Bool = true
+
+    /// Variable to indicate if an IoT device request is in process.
+    private var iotDeviceRequestInProcess: Bool = false
+
+    /// Variable to indicate if an IoT message request is in process.
+    private var iotMessageRequestInProcess: Bool = false
+
+    /// Variable to store the IoT device applicationId for the scanned item.
+    private var iotApplicationId: String?
+
+    /// Variable to store the IoT device for the scanned item.
     private var iotDevice: IoTDevice?
-    
-    /**
-     Variable to store the last sensor message returned from IoTCS.
-     */
+
+    /// Variable to store the last sensor message returned from IoTCS.
     private var lastSensorMessage: SensorMessage?
-    
-    /**
-     Reference to a timer that controlls how quickly to request IoT sensor data.
-     */
+
+    /// Reference to a timer that controlls how quickly to request IoT sensor data.
     private var sensorTimer: Timer?
-    
-    /**
-     Reference to the current scene node that has been captured by a tap and will display a contextual UI.
-     */
+
+    /// Reference to the current scene node that has been captured by a tap and will display a contextual UI.
     private weak var tappedNode: SCNNode?
-    
-    /**
-     Reference to the current scene node that has been captured by a long tap and will be dragged.
-     */
+
+    /// Reference to the current scene node that has been captured by a long tap and will be dragged.
     private weak var dragNode: SCNNode?
-    
-    /**
-     Reference to the current scene node that is being scaled via pinch.
-     */
+
+    /// Reference to the current scene node that is being scaled via pinch.
     private weak var pinchNode: SCNNode?
-    
-    /**
-     Reference to a view controller that is supplying an overlay to the AR experience (Charts, etc.)
-    */
+
+    /// Reference to a view controller that is supplying an overlay to the AR experience (Charts, etc.)
     weak var overlayViewController: UIViewController?
     
     // MARK: - Animation
-    
-    /**
-     An enumeration of animations that are baked into the AR components of this application and can be programmatically applied to any node.  An AR procedure step can apply an animation to a set of nodes, and this allows reference to the animation that should be applied.
-     */
+
+    /// An enumeration of animations that are baked into the AR components of this application and can be programmatically applied to any node.  An AR procedure step can apply an animation to a set of nodes, and this allows reference to the animation that should be applied.
     enum Animation: String, CaseIterable {
         case identify,
         fadeIn,
@@ -153,10 +135,8 @@ class ARViewController:
         rotateZ,
         wait
     }
-    
-    /**
-     Default duration for animations if not specified elsewhere.
-     */
+
+    /// Default duration for animations if not specified elsewhere.
     private let defaultDuration: TimeInterval = 0.25
     
     /**
@@ -173,7 +153,7 @@ class ARViewController:
         })
         
         guard nodes.count > 0 else {
-            os_log("Could not find node with name '%@' to play animation '%@'", nodeName, animation.rawValue)
+            os_log(.error, "Could not find node with name '%@' to play animation '%@'", nodeName, animation.rawValue)
             completion?()
             return
         }
@@ -200,7 +180,7 @@ class ARViewController:
         for node in nodes {
             #if DEBUG
             if let nodeName = node.name {
-                os_log("Playing animation '%@' for node '%@'", animation.rawValue, nodeName)
+                os_log(.debug, "Playing animation '%@' for node '%@'", animation.rawValue, nodeName)
             }
             #endif
             
@@ -263,12 +243,8 @@ class ARViewController:
         // Map the string array the values in animations enum
         var convertedAnimations: [Animation] = []
         for animation in animations {
-            for val in Animation.allCases {
-                if animation.name == val.rawValue {
-                    convertedAnimations.append(val)
-                    break
-                }
-            }
+            guard let val = Animation(rawValue: animation.name) else { continue }
+            convertedAnimations.append(val)
         }
         
         // If we cannot map all animations supplied then we cannot play all animations.  Prevent the list from playing and fix the JSON nodes with incorrect animation names.
@@ -279,9 +255,9 @@ class ARViewController:
         self.animatingParts = true
         
         let parallelAnimationForNodes: (Animation, ARAnimation, (() -> ())?) -> () = { (animation, procedureAnimation, animationCompletion) in
-            // Add any attributions to the supplied nodes prior to animation
-            if let attributions = procedureAnimation.attributions {
-                self.addAttributionsToSceneNodes(procedureAnimation.nodes, attributions: attributions)
+            // Add any attribute to the supplied nodes prior to animation
+            if let attributes = procedureAnimation.attributes {
+                self.addAttributesToSceneNodes(procedureAnimation.nodes, attributes: attributes)
             }
             
             // Run the animations
@@ -290,9 +266,9 @@ class ARViewController:
                 let duration = procedureAnimation.duration ?? 0.0
                 
                 self.play(animation, for: node, value: value, duration: duration, completion: {
-                    // Remove attributions
-                    if let attributions = procedureAnimation.attributions {
-                        self.removeAttributionChildNodes(node, attributions: attributions)
+                    // Remove attributes
+                    if let attributes = procedureAnimation.attributes {
+                        self.removeAttributeChildNodes(node, attributes: attributes)
                     }
                     
                     // Cleanup after last node played
@@ -336,7 +312,7 @@ class ARViewController:
      - Parameter completion: Completion called once nodes have been returned to their original positions.
      */
     private func returnNodes(completion: (() -> ())? = nil) {
-        guard let partsWithOriginalPositionsSaved = self.nodesOriginatingPositions else {
+        guard let partsWithOriginalPositionsSaved = self.nodesOriginatingPositions, let partsWithOriginalAnglesSaved = self.nodesOriginatingAngles, let partsWithOriginalOpacitiesSaved = self.nodesOriginatingOpacities else {
             #if DEBUG
             os_log(.debug, "Parts with original positions array empty.")
             #endif
@@ -347,7 +323,7 @@ class ARViewController:
         
         var animateReturn: ((String) -> ())!
         animateReturn = { nodeName in
-            guard let position = partsWithOriginalPositionsSaved[nodeName], let node = self.sceneView.scene.rootNode.childNode(withName: nodeName, recursively: true) else {
+            guard let position = partsWithOriginalPositionsSaved[nodeName], let angle = partsWithOriginalAnglesSaved[nodeName], let opacity = partsWithOriginalOpacitiesSaved[nodeName], let node = self.sceneView.scene.rootNode.childNode(withName: nodeName, recursively: true) else {
                 #if DEBUG
                 os_log(.debug, "Could not get original position for node named: %@", nodeName)
                 #endif
@@ -355,9 +331,9 @@ class ARViewController:
             }
             
             let actions: SCNAction = .group([
+                .fadeOpacity(to: opacity, duration: self.defaultDuration),
                 .move(to: position, duration: self.defaultDuration),
-                .fadeIn(duration: self.defaultDuration),
-                .rotateTo(x: 0, y: 0, z: 0, duration: self.defaultDuration),
+                .rotateTo(x: CGFloat(angle.x), y: CGFloat(angle.y), z: CGFloat(angle.z), duration: self.defaultDuration)
                 ])
             
             node.runAction(actions, completionHandler: {
@@ -449,6 +425,9 @@ class ARViewController:
         threeFingerGestureRecognizer.require(toFail: pinchGestureRecognizer) // Tap only recognizes if long press fails
         threeFingerGestureRecognizer.delegate = self
         self.view.addGestureRecognizer(threeFingerGestureRecognizer)
+        
+        // Create and event that the AR view loaded
+        AppEventRecorder.shared.record(name: "AR View Loaded", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: String(describing: type(of: self)), arAnchor: nil, arNode: nil, jsonString: nil, completion: nil)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -460,9 +439,8 @@ class ARViewController:
         // Applies the halo technique to the selected node for highlighting.
         #if DEBUGUI
         //Show stats in debug mode
-        sceneView.showsStatistics = true
-        
-        os_log("Will not apply line technique during debug to prevent frequent crashes in debug mode.")
+        //sceneView.showsStatistics = true // Showing stats is a huge performance killer so only enable when needed.
+        os_log(.debug, "Will not apply line technique during debug to prevent frequent crashes in debug mode.")
         #else
         if let path = Bundle.main.path(forResource: "LineNodeTechnique", ofType: "plist") {
             if let dict = NSDictionary(contentsOfFile: path) as? [String : AnyObject] {
@@ -554,7 +532,7 @@ class ARViewController:
         let viewsTouched = self.view.subviews.filter { $0.frame.contains(gestureRecognizer.location(in: self.view)) }
         
         #if DEBUG
-        os_log("Subviews Touched: %d", viewsTouched.count)
+        os_log(.debug, "Subviews Touched: %d", viewsTouched.count)
         #endif
         
         // Only allow the guesture if the touch was in the AR space and not a context view.
@@ -574,13 +552,18 @@ class ARViewController:
         
         if sender.numberOfTouches == 2 {
             #if DEBUG
-            os_log("rotating")
+            os_log(.debug, "rotating")
             #endif
             
             if sender.state == .began {
                 #if DEBUG
-                os_log("rotation began")
+                os_log(.debug, "rotation began")
                 #endif
+                
+                if let event = try? AppEventRecorder.shared.getEvent(name: gestureName) {
+                    event.uiElement = self.activeNodeName
+                    AppEventRecorder.shared.record(event: event, completion: nil)
+                }
             }
             else if sender.state == .changed {
                 let newY: Float = Float(sender.rotation) * -1
@@ -588,13 +571,22 @@ class ARViewController:
             }
             else {
                 #if DEBUG
-                os_log("rotation ended")
+                os_log(.debug, "rotation ended")
                 #endif
                 
                 // Only return if a procedure is not running
                 if !self.children.contains(where: { $0 is ProceduresViewController }) {
-                    activeNode.runAction(.rotateTo(x: 0, y: 0, z: 0, duration: 0.25))
+                    if let nodeName = activeNode.name, let originalAngles = self.nodesOriginatingAngles?[nodeName] {
+                        activeNode.runAction(.rotateTo(x: CGFloat(originalAngles.x), y: CGFloat(originalAngles.y), z: CGFloat(originalAngles.z), duration: 0.25))
+                    } else {
+                        activeNode.runAction(.rotateTo(x: 0, y: 0, z: 0, duration: 0.25))
+                    }
                 }
+                
+                guard let event = try? AppEventRecorder.shared.getEvent(name: gestureName) else { return }
+                event.eventEnd = Date()
+                event.readyToSend = true
+                AppEventRecorder.shared.record(event: event, completion: nil)
             }
         }
     }
@@ -610,7 +602,7 @@ class ARViewController:
         let gestureName = "Pinch Gesture"
         
         #if DEBUG
-        os_log("pinching")
+        os_log(.debug, "pinching")
         #endif
         
         // Get the visible model node in the scene
@@ -620,7 +612,10 @@ class ARViewController:
         }
         
         if sender.state == .began{
-            
+            if let event = try? AppEventRecorder.shared.getEvent(name: gestureName) {
+                event.uiElement = self.activeNodeName
+                AppEventRecorder.shared.record(event: event, completion: nil)
+            }
         }
         else if sender.state == .changed {
             if ((sender.velocity < 1 && self.pinchNode!.scale.x > 0.01) || (sender.velocity > 1 && self.pinchNode!.scale.x < 10.0)) {
@@ -637,13 +632,19 @@ class ARViewController:
             // Ensure rotation back to origin since both gestures can run at the same time
             // Only return if a procedure is not running
             if !self.children.contains(where: { $0 is ProceduresViewController }) {
-                self.pinchNode?.runAction(.rotateTo(x: 0, y: 0, z: 0, duration: 0.25))
+                if let nodeName = pinchNode?.name, let originalAngles = self.nodesOriginatingAngles?[nodeName] {
+                    self.pinchNode?.runAction(.rotateTo(x: CGFloat(originalAngles.x), y: CGFloat(originalAngles.y), z: CGFloat(originalAngles.z), duration: 0.25))
+                } else {
+                    self.pinchNode?.runAction(.rotateTo(x: 0, y: 0, z: 0, duration: 0.25))
+                }
             }
             
             self.pinchNode = nil
-        }
-        else {
-            self.pinchNode = nil
+            
+            guard let event = try? AppEventRecorder.shared.getEvent(name: gestureName) else { return }
+            event.eventEnd = Date()
+            event.readyToSend = true
+            AppEventRecorder.shared.record(event: event, completion: nil)
         }
     }
     
@@ -654,7 +655,7 @@ class ARViewController:
      */
     @objc private func tapped(_ sender: UITapGestureRecognizer) {
         #if DEBUG
-        os_log("single tapped")
+        os_log(.debug, "single tapped")
         #endif
         
         let gestureName = "Single Finger Tap"
@@ -679,6 +680,8 @@ class ARViewController:
             let hitTest = self.sceneView.hitTest(locationInView, options: nil)
             
             if let nodeHit = hitTest.first?.node, let nodeName = nodeHit.name {
+                AppEventRecorder.shared.record(name: gestureName, eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: nil, arAnchor: self.activeRecognitionContext?.name, arNode: nodeName, jsonString: nil, completion: nil)
+                
                 // Ensure that the node was tapped either while a procedure is not active, or if it is listed in the interaction nodes
                 if let proceduresViewController = self.children.first(where: { $0 is ProceduresViewController }) as? ProceduresViewController {
                     let interactionNodes = proceduresViewController.procedure?.interactionNodes
@@ -687,7 +690,7 @@ class ARViewController:
                 
                 #if DEBUG
                 if nodeHit.name != nil {
-                    os_log("Node Tapped: %@", nodeName)
+                    os_log(.debug, "Node Tapped: %@", nodeName)
                 }
                 #endif
                 
@@ -697,7 +700,7 @@ class ARViewController:
                 // Manage taps for the model item(s)
                 if itemTapped {
                     #if DEBUG
-                    os_log("Item is a 3D node. Setting context.")
+                    os_log(.debug, "Item is a 3D node. Setting context.")
                     #endif
                     
                     // remove sensors from the currently tapped node if it is different from the previously tapped node
@@ -715,8 +718,8 @@ class ARViewController:
             }
             else {
                 #if DEBUG
-                os_log("No node tapped")
-                os_log("Root node name: '%@'", (self.sceneView.scene.rootNode.name ?? ""))
+                os_log(.debug, "No node tapped")
+                os_log(.debug, "Root node name: '%@'", (self.sceneView.scene.rootNode.name ?? ""))
                 #endif
                 
                 let removeContext: () -> () = {
@@ -728,17 +731,17 @@ class ARViewController:
                 let setContextToRecognitionNode: () -> () = {
                     // see if we can select the recognition node for root level context
                     guard let sensors = self.activeRecognitionContext?.sensors, sensors.count > 0 else { removeContext(); return }
-                    guard let recognitionNodeName = self.activeRecognitionContext?.recognitionNodeName() else { return }
+                    guard let recognitionNodeName = self.activeRecognitionContext?.name else { return }
                     guard let recognitionNode = self.sceneView.scene.rootNode.childNode(withName: recognitionNodeName, recursively: false) else { return }
                     
                     self.setTappedNodeContext(recognitionNode)
                 }
                 
-                if self.tappedNode != nil && self.activeRecognitionContext != nil && self.tappedNode?.name != self.activeRecognitionContext?.recognitionNodeName() {
+                if self.tappedNode != nil && self.activeRecognitionContext != nil && self.tappedNode?.name != self.activeRecognitionContext?.name {
                     setContextToRecognitionNode()
                 }
                 // If the tapped node is already set to the recognition node, then no other action required
-                else if self.tappedNode?.name == self.activeRecognitionContext?.recognitionNodeName() {
+                else if self.tappedNode?.name == self.activeRecognitionContext?.name {
                     return
                 }
                 else {
@@ -747,21 +750,30 @@ class ARViewController:
             }
         }
     }/**
-     Event handler for a single three-finger tap event which will play a node's assigned animations from its ARNodeContext context.
+     Event handler for a single two-finger tap that will select the root node of the actively recognized item.
      
      - Parameter sender: The gesture recognizer that sent the event.
      */
     @objc private func twoFingerTap(_ sender: UITapGestureRecognizer) {
         #if DEBUG
         let gestureName = "Two Finger Tap"
-        os_log("%@", gestureName)
+        os_log(.debug, "%@", gestureName)
         #endif
         
-        guard let nodeName = self.activeRecognitionContext?.rootNodeName() else { return }
+        guard let nodeName = self.activeRecognitionContext?.nodeName() else { return }
+        
+        // Ensure that a procedure is not active, or if it is listed in the interaction nodes
+        if let proceduresViewController = self.children.first(where: { $0 is ProceduresViewController }) as? ProceduresViewController {
+            let interactionNodes = proceduresViewController.procedure?.interactionNodes
+            guard (interactionNodes != nil && interactionNodes!.contains(nodeName)) else { return }
+        }
+        
         guard let node = self.sceneView.scene.rootNode.childNode(withName: nodeName, recursively: true) else { return }
         
         self.returnNodes {
-            self.setTappedNodeContext(node)
+            DispatchQueue.main.async {
+                self.setTappedNodeContext(node)
+            }
         }
     }
     
@@ -774,7 +786,7 @@ class ARViewController:
         let gestureName = "Three Finger Tap"
         
         #if DEBUG
-        os_log("%@", gestureName)
+        os_log(.debug, "%@", gestureName)
         #endif
         
         let locationInView: CGPoint = sender.location(in: self.sceneView)
@@ -782,6 +794,8 @@ class ARViewController:
         let hitNode = hitResults.first?.node
         let nodeName = hitNode?.name
  
+        AppEventRecorder.shared.record(name: gestureName, eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: nil, arAnchor: self.activeRecognitionContext?.name, arNode: hitNode?.name, jsonString: nil, completion: nil)
+        
         // Ensure that the node was tapped either while a procedure is not active, or if it is listed in the interaction nodes
         if let proceduresViewController = self.children.first(where: { $0 is ProceduresViewController }) as? ProceduresViewController, nodeName != nil {
             let interactionNodes = proceduresViewController.procedure?.interactionNodes
@@ -791,12 +805,12 @@ class ARViewController:
         if sender.state == .ended && !self.animatingParts {
             if !self.partsExposed {
                 #if DEBUG
-                os_log("Exposing Parts")
+                os_log(.debug, "Exposing Parts")
                 #endif
                 
                 guard let animations = self.activeRecognitionContext?.actionAnimations, animations.count > 0 else {
                     #if DEBUG
-                    os_log("No actions assigned to recognition context '%@'", self.activeRecognitionContext?.name ?? "N/A")
+                    os_log(.debug, "No actions assigned to recognition context '%@'", self.activeRecognitionContext?.name ?? "N/A")
                     #endif
                     
                     return
@@ -813,7 +827,7 @@ class ARViewController:
                 }
             } else {
                 #if DEBUG
-                os_log("Returning Parts")
+                os_log(.debug, "Returning Parts")
                 #endif
                 
                 self.returnNodes(completion: nil)
@@ -865,6 +879,11 @@ class ARViewController:
                 
                 self.tappedNode = self.dragNode
             }
+            
+            if let event = try? AppEventRecorder.shared.getEvent(name: gestureName) {
+                event.uiElement = nodeName
+                AppEventRecorder.shared.record(event: event, completion: nil)
+            }
         }
         else if sender.state == .ended {
             if self.dragNode != nil {
@@ -887,6 +906,11 @@ class ARViewController:
             for node in activeNode.childNodes {
                 self.resetMaterials(node)
             }
+            
+            guard let event = try? AppEventRecorder.shared.getEvent(name: gestureName) else { return }
+            event.eventEnd = Date()
+            event.readyToSend = true
+            AppEventRecorder.shared.record(event: event, completion: nil)
         }
     }
     
@@ -905,7 +929,7 @@ class ARViewController:
         if sender.numberOfTouches == 1 {
             guard let selectedNode = self.dragNode, let nodeName = selectedNode.name else {
                 #if DEBUG
-                os_log("Pan called by drag node not selected")
+                os_log(.debug, "Pan called by drag node not selected")
                 #endif
                 
                 return
@@ -928,7 +952,7 @@ class ARViewController:
                 selectedNode.position = position
                 
                 #if DEBUG
-                os_log("Position: X (%.5f) Y (%.5f) Z (%.5f)", position.x, position.y, position.z)
+                os_log(.debug, "1-Finger Pan Position: X (%.5f) Y (%.5f) Z (%.5f)", position.x, position.y, position.z)
                 #endif
             }
         }
@@ -946,17 +970,17 @@ class ARViewController:
                 selectedNode.position = position
                 
                 #if DEBUG
-                os_log("Position: X (%.5f) Y (%.5f) Z (%.5f)", position.x, position.y, position.z)
+                os_log(.debug, "2-Finger Pan Position: X (%.5f) Y (%.5f) Z (%.5f)", position.x, position.y, position.z)
                 #endif
             }
         }
         // Change the opacity when three models are used.
         else if sender.numberOfTouches == 3 {
             #if DEBUG
-            os_log("3 finger pan")
+            os_log(.debug, "3-Finger pan")
             #endif
             
-            guard let recognizedNodeName = self.activeRecognitionContext?.rootNodeName() else { return }
+            guard let recognizedNodeName = self.activeRecognitionContext?.name else { return }
             guard let modelNode = self.sceneView.scene.rootNode.childNode(withName: recognizedNodeName, recursively: true) else { return }
             guard let childNodes = modelNode.nonSensorChildNodes else { return }
             //guard let firstNode = childNodes.first else { return }
@@ -973,7 +997,7 @@ class ARViewController:
             }
             
             #if DEBUG
-            os_log("New Transparency: %.5f", newOpacity)
+            os_log(.debug, "New Transparency: %.5f", newOpacity)
             #endif
             
             modelNode.opacity = newOpacity
@@ -990,10 +1014,16 @@ class ARViewController:
         }
         
         if sender.state == .began {
-            
+            if let event = try? AppEventRecorder.shared.getEvent(name: gestureName) {
+                event.uiElement = self.dragNode?.name
+                AppEventRecorder.shared.record(event: event, completion: nil)
+            }
         }
         else if sender.state == .ended {
-            
+            guard let event = try? AppEventRecorder.shared.getEvent(name: gestureName) else { return }
+            event.eventEnd = Date()
+            event.readyToSend = true
+            AppEventRecorder.shared.record(event: event, completion: nil)
         }
     }
     
@@ -1011,7 +1041,7 @@ class ARViewController:
     
     func serverConfigsRetrieved(_ result: Bool) {
         let showError: () -> () = {
-            let alert = UIAlertController(title: "Unable to Load Configs", message: "We are unable to reach ICS for server data. Ensure that the ICS configuration variables are set in application settings and that the username and password are correct.", preferredStyle: UIAlertController.Style.alert)
+            let alert = UIAlertController(title: "Unable to Load Configs", message: "We are unable to reach Oracle Cloud Infrastructure for server data. Ensure that the OCI F(n) configuration variables are set in application settings and that the username and password are correct.", preferredStyle: UIAlertController.Style.alert)
             
             let settingsAction = UIAlertAction(title: "Open Settings", style: .default) { (_) -> Void in
                 guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
@@ -1020,13 +1050,15 @@ class ARViewController:
                 
                 if UIApplication.shared.canOpenURL(settingsUrl) {
                     UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
-                        os_log("Settings opened: %@", success)
+                        os_log(.debug, "Settings opened")
                     })
                 }
             }
             
             alert.addAction(settingsAction)  // Go to settings button
-            alert.addAction(UIAlertAction(title: "Cancel", style: UIAlertAction.Style.cancel, handler: nil))  // Cancel Button
+            alert.addAction(UIAlertAction(title: "Retry", style: UIAlertAction.Style.cancel, handler: { action in
+                self.resetScene(true)
+            }))
             
             //ensure alert is presented on the main UI thread
             DispatchQueue.main.async {
@@ -1037,43 +1069,20 @@ class ARViewController:
         DispatchQueue.main.async {
             // If not successful, supply a warning to configure the remote settings.
             guard result else { showError(); return }
-        
-            // App delegate access must be run on main thread
-            guard let serverConfigs = (UIApplication.shared.delegate as? AppDelegate)?.appServerConfigs?.serverConfigs else { showError(); return }
             
-            // The device ID is only supplied here because this is a demo.  In the real-world, the object scan would identify the unique device id to retrieve IoT data for.
-            //TODO: Remove and replace with ID recognition at scan.
-            guard let deviceId = serverConfigs.iot?.deviceId else {
-                let alert = UIAlertController(title: "Unable to Connect to Server", message: "Unable to get server configs from ICS", preferredStyle: .alert)
-                let action = UIAlertAction(title: "OK", style: .default, handler: nil)
-                alert.addAction(action)
-                
-                DispatchQueue.main.async {
-                    self.present(alert, animated: true, completion: nil)
-                }
-                
-                return
-            }
+            guard let overlayVc = self.children.first(where: { $0 is ActivityOverlayViewController }) as? ActivityOverlayViewController else { return }
+            overlayVc.view.removeFromSuperview()
+            overlayVc.removeFromParent()
             
-            self.deviceId = deviceId
-            
-            // Get the remote info for this device ID.
-            self.getDeviceData(deviceId, completion: {
-                // Start AR Tracking
-                DispatchQueue.main.async {
-                    guard let overlayVc = self.children.first(where: { $0 is ActivityOverlayViewController }) as? ActivityOverlayViewController else { return }
-                    overlayVc.view.removeFromSuperview()
-                    overlayVc.removeFromParent()
-                    
-                    self.setTrackingConfiguration()
-                }
-            })
+            self.setTrackingConfiguration()
         }
     }
 
     // MARK: - ARSCNViewDelegate Methods
     
     func session(_ session: ARSession, didFailWithError error: Error) {
+        AppEventRecorder.shared.record(name: "AR Session Failed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: nil, arAnchor: self.activeRecognitionContext?.name, arNode: self.activeNodeName, jsonString: nil, completion: nil)
+        
         // Present an error message to the user
         let alert = UIAlertController(title: "AR Error", message: "The AR session ended in an unexpected error: \(error)", preferredStyle: .alert)
         let action = UIAlertAction(title: "OK", style: .default, handler: nil)
@@ -1086,13 +1095,19 @@ class ARViewController:
     }
     
     func sessionWasInterrupted(_ session: ARSession) {
-        os_log("AR Session Interrupted")
+        os_log(.info, "AR Session Interrupted")
         
         self.setSensorTimerState(to: false)
+        
+        guard let event = try? AppEventRecorder.shared.getEvent(name: "AR Session Interrupted") else { return }
+        event.eventStart = Date()
+        event.arNode = self.activeNodeName
+        event.arAnchor = self.activeRecognitionContext?.name
+        AppEventRecorder.shared.record(event: event, completion: nil)
     }
     
     func sessionInterruptionEnded(_ session: ARSession) {
-        os_log("AR Session Interruption Ended")
+        os_log(.info, "AR Session Interruption Ended")
         
         self.setSensorTimerState(to: true)
         
@@ -1110,38 +1125,61 @@ class ARViewController:
             return
         }
         
-        guard let deviceId = self.deviceId else { return }
-        
+        guard let deviceId = self.iotDevice?.id else {
+            os_log(.error, "Device ID does not exist on AR controller after session interruption ended.")
+            return
+        }
         self.getDeviceData(deviceId, completion: nil)
+        
+        guard let event = try? AppEventRecorder.shared.getEvent(name: "AR Session Interrupted") else { return }
+        event.eventEnd = Date()
+        AppEventRecorder.shared.record(event: event, completion: nil)
     }
     
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        //Ensure that the scene is empty and doesn not have nodes that may have lingered from a different tracking session
+        //Ensure that the scene is empty and does not have nodes that may have lingered from a different tracking session
         self.resetScene(false)
         
-        guard let anchorName = anchor.name, let anchorObjNameSubStr = anchorName.split(separator: "_").first else { return }
+        guard let anchorName = anchor.name else {
+            os_log(.error, "Anchor scanned does not have a name. Cannot proceed with AR experience.")
+            return
+        }
         
-        let anchorObjName = String(anchorObjNameSubStr)
+        let anchorObjNameComponents = anchorName.split(separator: "_")
+        
+        guard anchorObjNameComponents.count >= 3, let major = Int(String(anchorObjNameComponents[0])), let minor = Int(String(anchorObjNameComponents[1])) else {
+            os_log(.error, "Anchor scanned does not conform to the naming convension established in this application.  Major and minor values expected in first two array keys.")
+            return
+        }
+        
+        let anchorObjNameSubStr = String(anchorObjNameComponents[2])
+        let anchorObjFileName = String(format: "%d-%@", major, anchorObjNameSubStr)
+        let anchorObjNodeName = String(anchorObjNameSubStr)
         
         #if DEBUG
-        os_log("Anchor Name: %@", anchorName)
-        os_log("Anchor Object: %@", anchorObjName)
+        os_log(.debug, "Anchor Name: %@", anchorName)
+        os_log(.debug, "Anchor File Name: %@.scn", anchorObjFileName)
+        os_log(.debug, "Anchor Node Name: %@", anchorObjNodeName)
+        os_log(.debug, "Anchor Object Major: %d", major)
+        os_log(.debug, "Anchor Object Minor: %d", minor)
         #endif
+        
+        AppEventRecorder.shared.record(name: "AR Renderer Added Node", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: nil, arAnchor: anchorName, arNode: nil, jsonString: nil, completion: nil)
         
         let setupRecognitionContext: () -> () = {
             #if DEBUG
-            os_log("Setting up recognition context for %@", anchorName)
+            os_log(.debug, "Setting up recognition context for %@", anchorName)
             #endif
             
             guard let context = self.activeRecognitionContext else {
                 #if DEBUG
-                os_log("No recognition context for %@", anchorName)
+                os_log(.debug, "No recognition context for %@", anchorName)
                 #endif
                 
                 return
             }
             
-            node.name = self.activeRecognitionContext?.recognitionNodeName()
+            node.name = self.activeRecognitionContext?.name
             
             guard let sensors = context.sensors else { return }
             self.nodeSensorCache[node.name!] = sensors
@@ -1151,14 +1189,14 @@ class ARViewController:
             
         let setupModelContext: () -> () = {
             #if DEBUG
-            os_log("Setting up model context for %@", anchorName)
+            os_log(.debug, "Setting up model context for %@", anchorName)
             #endif
             
             // Updates to the node have to happen on the main thread
             DispatchQueue.main.async {
                 // Insert model into view
-                guard let assetNode = SCNScene(named: String(format: "art.scnassets/%@.scn", anchorObjName))?.rootNode.childNode(withName: anchorObjName, recursively: false) else {
-                    os_log(.error, "Unable to find 3D model for %@", anchorObjName)
+                guard let assetNode = SCNScene(named: String(format: "art.scnassets/%@.scn", anchorObjFileName))?.rootNode.childNode(withName: anchorObjNodeName, recursively: false) else {
+                    os_log(.error, "Unable to find 3D model for %@", anchorObjNodeName)
                     
                     // only display message if the recognition context is empty too.
                     // we do this check because the setup may be intended to omit a 3D model in the AR space.
@@ -1182,6 +1220,8 @@ class ARViewController:
                 
                 self.activeNodeName = assetNode.name
                 
+                AppEventRecorder.shared.record(name: "AR Node Displayed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: nil, arAnchor: anchorName, arNode: assetNode.name, jsonString: nil, completion: nil)
+                
                 if let objectAnchor = anchor as? ARObjectAnchor {
                     assetNode.simdScale = objectAnchor.referenceObject.scale / 2
                     assetNode.simdPosition = objectAnchor.referenceObject.center
@@ -1191,26 +1231,45 @@ class ARViewController:
                     assetNode.position.z = 0
                     
                     #if DEBUG
-                    os_log("Position: X (%.f5) Y (%.f5) X (%.f5)", assetNode.position.x, assetNode.position.y, assetNode.position.z)
+                    os_log(.debug, "Position: X (%.f5) Y (%.f5) X (%.f5)", assetNode.position.x, assetNode.position.y, assetNode.position.z)
                     #endif
                 }
                 else if let imageAnchor = anchor as? ARImageAnchor {
                     assetNode.position.z = Float(imageAnchor.referenceImage.physicalSize.height) * -1
                 }
                 
-                // Save the original positions of all nodes so that we can reset the model to this state if the user moves parts around
+                // If the recognition context has properties that alter the default positions set above, then use them now.
+                if let modelScale = self.activeRecognitionContext?.modelScale {
+                    assetNode.scale = modelScale.getVector3()
+                }
+                if let modelRotation = self.activeRecognitionContext?.modelRotation {
+                    assetNode.eulerAngles = modelRotation.getVector3Radians()
+                }
+                if let modelPosition = self.activeRecognitionContext?.modelPosition {
+                    assetNode.position = modelPosition.getVector3()
+                }
+                
                 self.nodesOriginatingPositions = [:]
+                self.nodesOriginatingOpacities = [:]
+                self.nodesOriginatingAngles = [:]
+                
+                // Save the original positions and opacities of all nodes so that we can reset the model to this state if the user moves parts around
+                self.nodesOriginatingPositions?[assetNode.name!] = assetNode.position
+                self.nodesOriginatingOpacities?[assetNode.name!] = assetNode.opacity
+                self.nodesOriginatingAngles?[assetNode.name!] = assetNode.eulerAngles
+                
                 var saveNodePositions: ((SCNNode) -> ())!
                 saveNodePositions = { node in
                     if let nodeName = node.name, nodeName != assetNode.name {
-                        self.nodesOriginatingPositions![nodeName] = node.position
+                        self.nodesOriginatingPositions?[nodeName] = node.position
+                        self.nodesOriginatingOpacities?[nodeName] = node.opacity
+                        self.nodesOriginatingAngles?[nodeName] = node.eulerAngles
                     }
                     
                     guard let childNodes = node.nonSensorChildNodes else { return }
                     
                     for childNode in childNodes {
                         saveNodePositions(childNode)
-                        childNode.opacity = 0.5
                     }
                 }
                 
@@ -1224,11 +1283,11 @@ class ARViewController:
             
             // Show sensors after a delay to let node placement occur
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                os_log("Showing Sensors")
+                os_log(.debug, "Showing Sensors")
                 
                 guard let activeNodeName = self.activeNodeName, let assetNode = self.sceneView.scene.rootNode.childNode(withName: activeNodeName, recursively: true) else {
                     #if DEBUG
-                    os_log("Could not find node for: %@", (self.activeNodeName ?? ""))
+                    os_log(.debug, "Could not find node for: %@", (self.activeNodeName ?? ""))
                     #endif
                     return
                 }
@@ -1242,7 +1301,11 @@ class ARViewController:
         // Manages different behaviors between image and object recognition types.
         let handleRecognition: () -> () = {
             // Remove the "scan item" overlay image
-            self.sceneView.overlaySKScene?.removeAllChildren()
+            DispatchQueue.main.async {
+                self.sceneView.overlaySKScene?.removeAllChildren()
+                self.sceneView.overlaySKScene = nil
+                self.setSensorTimerState(to: false)
+            }
             
             // Perform specfic functions based on whether the anchor was image based or object based.
             if anchor is ARObjectAnchor {
@@ -1252,68 +1315,196 @@ class ARViewController:
                 self.objectImageHandler(node: node, anchor: (anchor as! ARImageAnchor))
             }
             else {
-                os_log("Anchor was neither an object nor image. Resetting AR scene.")
+                os_log(.error, "Anchor was neither an object nor image. Resetting AR scene.")
                 self.resetScene()
                 return
             }
             
-            //TODO: Add a progress indicator while application is getting remote data
-            // ensure that the anchor has a name that we can use to query for contextual data
             DispatchQueue.main.async {
-                guard let anchorName = anchor.name else {
-                    let alert = UIAlertController(title: "Error", message: "The AR application was able to recognize an object, but cannot connect to ICS to retrieve configuration details about the item. Ensure that ICS is configured correctly and try again.", preferredStyle: .alert)
-                    let action = UIAlertAction(title: "OK", style: .default, handler: { (action) in
-                        self.resetScene()
-                    })
-                    alert.addAction(action)
-                    
+                self.deviceRecognitionHandler(major: major, minor: minor, completion: {
                     DispatchQueue.main.async {
-                        self.present(alert, animated: true, completion: nil)
-                    }
-                    
-                    return
-                }
-                
-                // Query API for context data for recognized object/image
-                ICSBroker.shared.getRecognitionData(name: anchorName, completion: { result in
-                    var context: ARRecognitionContext?
-                    
-                    switch result {
-                    case .success(let data):
-                        context = data
-                        break
-                    case .failure(let failure):
-                        failure.log()
-                        break
-                    }
-                    
-                    self.activeRecognitionContext = context
-                    
-                    // Show the application buttons
-                    if let vc = UIStoryboard(name: "ApplicationButtonContext", bundle: nil).instantiateViewController(withIdentifier: "ApplicationButtonsViewController") as? ApplicationButtonsViewController {
-                        self.addChild(vc)
+                        guard self.iotDevice != nil else { return }
                         
-                        vc.delegate = self
-                        vc.moveFrameOutOfView()
+                        // Setup any content related to the object/image that was recognized
+                        setupRecognitionContext()
                         
-                        self.view.insertSubview(vc.view, at: 0)
-                        
-                        vc.resizeForContent(self.defaultDuration, completion: nil)
+                        // Setup 3D models
+                        setupModelContext()
                     }
-                    
-                    // Setup any 3D content related to the object/image that was recognized
-                    setupRecognitionContext()
-                    
-                    // Setup 3D models
-                    setupModelContext()
                 })
             }
         }
         
+        // Disable beacon tracking if a visual recognition was found first
+        self.blockBeaconAlerts = true
+        
         handleRecognition()
     }
     
-    //MARK: - AR and Scene Methods
+    // MARK: - Device Recognition Methods
+    
+    /**
+     Method to handle common recognition tasks regardless of the source of the recognition (AR, iBeacons, etc.).
+     If this method fails, then an error is presented and the scene is reset.
+     
+     - Parameter major: The major int of the recognition item.
+     - Parameter minor: The minor int of the recognition item.
+     - Parameter completion: Callback method called on successful device retrieval.
+    */
+    private func deviceRecognitionHandler(major: Int, minor: Int, completion: @escaping () -> ()) {
+        // If a device request is already in process, then just drop this request
+        guard !self.iotDeviceRequestInProcess else { completion(); return }
+        
+        let recognitionError: () -> () = {
+            DispatchQueue.main.async {
+                let alert = UIAlertController(title: "Identification Error", message: "A recognition event occurred but we were unable to get the IoT device ID for the recognized item. Will reset the scene.", preferredStyle: .alert)
+                let action = UIAlertAction(title: "OK", style: .default, handler: { (action) in
+                    self.resetScene()
+                })
+                alert.addAction(action)
+                
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
+        
+        let overlay = UIStoryboard(name: "ActivityOverlay", bundle: nil).instantiateViewController(withIdentifier: "ActivityOverlayViewController") as? ActivityOverlayViewController
+        if overlay != nil {
+            overlay!.view.frame = self.view.frame
+            self.addChild(overlay!)
+            self.view.addSubview(overlay!.view)
+            overlay!.setLabel("Getting Device Info")
+        }
+        
+        guard let integrationBroker = (UIApplication.shared.delegate as! AppDelegate).integrationBroker else {
+            recognitionError()
+            completion()
+            return
+        }
+        
+        self.iotDeviceRequestInProcess = true
+        
+        // Query API for context data for recognized object/image model
+        integrationBroker.getRecognitionContext(major: major, minor: minor, completion: { result in
+            var context: ARRecognitionContext?
+            
+            switch result {
+            case .success(let data):
+                context = data
+                break
+            case .failure(let failure):
+                failure.log()
+                break
+            }
+            
+            self.activeRecognitionContext = context
+            
+            // Get the device ID for the recognized minor record.
+            integrationBroker.getUUIDsForRecognizedDevice(major: major, minor: minor, completion: { (result) in
+                switch result {
+                case .success(let tuple):
+                    DispatchQueue.main.async {
+                        integrationBroker.getDeviceInfo(tuple.1, completion: { (result) in
+                            self.iotDeviceRequestInProcess = false
+                            
+                            DispatchQueue.main.async {
+                                switch result {
+                                case .success(let device):
+                                    overlay?.view.removeFromSuperview()
+                                    overlay?.removeFromParent()
+                                    self.iotApplicationId = tuple.0
+                                    self.iotDevice = device
+                                    
+                                    // Show the application buttons
+                                    buttonIf: if let vc = UIStoryboard(name: "ApplicationButtonContext", bundle: nil).instantiateViewController(withIdentifier: "ApplicationButtonsViewController") as? ApplicationButtonsViewController {
+                                        guard !self.children.contains(where: { $0 is ApplicationButtonsViewController }) else { break buttonIf }
+                                        
+                                        self.addChild(vc)
+                                        
+                                        vc.delegate = self
+                                        vc.moveFrameOutOfView()
+                                        
+                                        self.view.insertSubview(vc.view, at: 0)
+                                        
+                                        vc.resizeForContent(self.defaultDuration, completion: nil)
+                                    }
+                                    
+                                    completion()
+                                    break
+                                case .failure(let failure):
+                                    failure.log()
+                                    recognitionError()
+                                    break
+                                }
+                            }
+                        })
+                    }
+                    
+                    break
+                case .failure(let failure):
+                    failure.log()
+                    recognitionError()
+                    break
+                }
+            })
+        })
+    }
+    
+    /**
+     Can be called when an iBeacon is recognized to set the recognition context based on a beacon.
+     
+     - Parameter major: The major int of the recognition item.
+     - Parameter minor: The minor int of the recognition item.
+     - Parameter completion: Callback method called on successful device retrieval.
+     */
+    func iBeaconRecognitionHandler(major: Int, minor: Int, completion: (() -> ())?) {
+        // Ensure that we will offer beacon notices
+        guard !self.blockBeaconAlerts else { return }
+        
+        // Ensure that we have server configs before trying to recognize items
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate, let configs = appDelegate.appServerConfigs, !configs.gettingServerConfigs else { return }
+        
+        // Ensure there are no overlays on top of the view now
+        guard !self.children.contains(where: { $0 is OverlayViewController }) else { return }
+        
+        // If a device is already active in the UI, then do not proceed.
+        guard self.iotDevice == nil else { return }
+        
+        self.blockBeaconAlerts = true
+        
+        //TODO: Update UI by displaying which devices are near and allowing the user to select a given device.
+        self.deviceRecognitionHandler(major: major, minor: minor) {
+            guard let device = self.iotDevice, let deviceId = device.id else { return }
+            guard let recognitionContext = self.activeRecognitionContext else { return }
+            guard let deviceModel = device.deviceModels?.first(where: { $0.system != nil && $0.system! == false }), let deviceModelName = deviceModel.name else { return }
+            
+            let alert = UIAlertController(title: "Beacon Found", message: String(format: "A beacon for device %@ with id %@ was found. Would you like to view its details now?", deviceModelName, deviceId), preferredStyle: .alert)
+            let ok = UIAlertAction(title: "OK", style: .default, handler: { (action) in
+                let emptyNode = SCNNode()
+                // The recognition node should not share the same name as the root node of the model
+                // We address this by adding "_recognition" to the end of the recognition node names.
+                // Remove that here so that we can "fake" finding the AR object based on the beacon and display
+                // the object data even though the AR recognition has not happened.
+                if let nodeName = recognitionContext.nodeName() {
+                    emptyNode.name = String(nodeName)
+                    self.setTappedNodeContext(emptyNode)
+                }
+                
+                self.blockBeaconAlerts = false
+            })
+            let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: { (action) in
+                self.iotDevice = nil
+                self.iotApplicationId = nil
+            })
+            alert.addAction(ok)
+            alert.addAction(cancel)
+            
+            DispatchQueue.main.async {
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
+    }
+    
+    // MARK: - AR and Scene Methods
     
     /**
      Method for setting up the image tracking configuration.
@@ -1323,13 +1514,13 @@ class ARViewController:
     private func setTrackingConfiguration(_ resetTracking: Bool = true) {
         // Setup tracking configuration
         guard let referenceImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil), let referenceObjects = ARReferenceObject.referenceObjects(inGroupNamed: "AR Resources", bundle: nil) else {
-            os_log("Could not find any tracking images in AR Resources")
+            os_log(.error, "Could not find any tracking images in AR Resources")
             return
         }
         
         #if DEBUG
-        os_log("%d reference images for AR detection available.", referenceImages.count)
-        os_log("%d reference objects for AR detection available.", referenceObjects.count)
+        os_log(.debug, "%d reference images for AR detection available.", referenceImages.count)
+        os_log(.debug, "%d reference objects for AR detection available.", referenceObjects.count)
         #endif
         
         var configuration: ARConfiguration!
@@ -1346,14 +1537,14 @@ class ARViewController:
             (configuration as! ARImageTrackingConfiguration).isAutoFocusEnabled = true
             
             #if DEBUG
-            os_log("Using image tracking")
+            os_log(.debug, "Using image tracking")
             #endif
         } else {
             configuration = ARWorldTrackingConfiguration()
             (configuration as! ARWorldTrackingConfiguration).detectionObjects = referenceObjects
             
             #if DEBUG
-            os_log("Using object tracking")
+            os_log(.debug, "Using object tracking")
             #endif
         }
         
@@ -1361,7 +1552,7 @@ class ARViewController:
         
         if resetTracking {
             #if DEBUG
-            os_log("Reset tracking flag is true")
+            os_log(.debug, "Reset tracking flag is true")
             #endif
             
             options = [.removeExistingAnchors, .resetTracking]
@@ -1380,6 +1571,8 @@ class ARViewController:
                 }
                 
                 self.showPlacementImageScene()
+                
+                self.blockBeaconAlerts = false
             }
         }
         
@@ -1397,13 +1590,11 @@ class ARViewController:
             }
         }
     }
-    
-    /**
-     Method for displaying the placement scene as a HUD
-     */
+
+    /// Method for displaying the placement scene as a HUD
     private func showPlacementImageScene() {
         #if DEBUG
-        os_log("Showing placement scene")
+        os_log(.debug, "Showing placement scene")
         #endif
         
         if self.sceneView.overlaySKScene == nil {
@@ -1413,7 +1604,7 @@ class ARViewController:
         }
         
         guard let placementImageScene = self.imagePlacementScene?.copy() as? SKScene else {
-            os_log("Error getting image placement scene!")
+            os_log(.error, "Error getting image placement scene!")
             return
         }
         placementImageScene.delegate = self
@@ -1441,7 +1632,7 @@ class ARViewController:
     */
     private func objectAnchorHandler(node: SCNNode, anchor: ARObjectAnchor) {
         #if DEBUG
-        os_log("Object detection anchor found")
+        os_log(.debug, "Object detection anchor found")
         #endif
     }
     
@@ -1453,18 +1644,18 @@ class ARViewController:
      */
     private func objectImageHandler(node: SCNNode, anchor: ARImageAnchor) {
         #if DEBUG
-        os_log("Image detection anchor found")
+        os_log(.debug, "Image detection anchor found")
         #endif
         
         DispatchQueue.main.async {
             let referenceImage = anchor.referenceImage
             guard let imageName = referenceImage.name else {
-                os_log("Reference image did not have a name that we could use to map to a scene file.")
+                os_log(.error, "Reference image did not have a name that we could use to map to a scene file.")
                 return
             }
             
             #if DEBUG
-            os_log("Found reference image: %@", imageName)
+            os_log(.debug, "Found reference image: %@", imageName)
             #endif
             
             // Push the model to the back of the placement image so that the camera can track the image and display the model at the same time.
@@ -1488,42 +1679,6 @@ class ARViewController:
     }
     
     /**
-     Displays a contextual warning message based on the string supplied.
-     
-     - Parameter message: The warning message to display.
-     - Parameter time: The number of seconds to display the message for.
-     */
-    private func displayWarningContext(message: String, for time: TimeInterval) {
-        let textNode = SKLabelNode(fontNamed: "HelveticaNeue-Light") // see http://iosfonts.com for options!
-        textNode.text = message
-        textNode.fontColor = UIColor.red
-        var frame = textNode.calculateAccumulatedFrame()
-        
-        
-        repeat {
-            textNode.xScale = textNode.xScale - 0.1
-            textNode.yScale = textNode.yScale - 0.1
-            frame = textNode.calculateAccumulatedFrame()
-        } while (frame.size.width > self.view.frame.size.width)
-        
-        frame = textNode.calculateAccumulatedFrame()
-        
-        let yBorderOffset: CGFloat = 20.0
-        let moveY: CGFloat = -((self.sceneView.frame.height / 2) - ((textNode.yScale * frame.size.height) / 2)) + yBorderOffset
-        textNode.position = CGPoint(x: 0.0, y: moveY)
-        
-        DispatchQueue.main.async {
-            self.sceneView.overlaySKScene?.addChild(textNode)
-        }
-        
-        Timer.scheduledTimer(withTimeInterval: time, repeats: false, block: { (timer) in
-            DispatchQueue.main.async {
-                textNode.removeFromParent()
-            }
-        })
-    }
-    
-    /**
      Method to remove all AR elements from the view and reset the experience.
      
      - Parameter resetUI: When true, will completely reset the UI of the experience.  When false, resets only values.
@@ -1535,6 +1690,8 @@ class ARViewController:
         // Disable timers and remove UI elements
         self.setSensorTimerState(to: false)
         self.nodesOriginatingPositions = nil
+        self.nodesOriginatingOpacities = nil
+        self.nodesOriginatingAngles = nil
         self.tappedNode = nil
         
         // Reconfigure tracking and overlay UI
@@ -1544,6 +1701,12 @@ class ARViewController:
         
         if resetUI {
             self.pauseAllActions()
+            
+            self.blockBeaconAlerts = false
+            
+            // Remove the reference to the recognized device
+            self.iotDevice = nil
+            self.iotApplicationId = nil
             
             // Reset AR Tracking
             DispatchQueue.main.async {
@@ -1628,15 +1791,16 @@ class ARViewController:
      - Parameter node: The node to update.
      */
     private func setTappedNodeContext(_ node: SCNNode) {
+        // No need to do anything else if the tapped node is the same as the previously tapped node.
+        guard node != self.tappedNode else { return }
+        
         // Ensure that the device id is set
-        guard let deviceId = self.deviceId else { return }
+        guard let deviceId = self.iotDevice?.id else { return }
+        guard let appId = self.iotApplicationId else { return }
         
         // Ensure that the node has a name and that it is different than the currently selected node.
         guard let nodeName = node.name, (self.tappedNode == nil || nodeName != self.tappedNode?.name) else {
-            #if DEBUG
-            os_log("Node does not have a name. Cannot set context.")
-            #endif
-            
+            os_log(.info, "Node does not have a name. Cannot set context.")
             return
         }
         
@@ -1659,15 +1823,26 @@ class ARViewController:
                 contextController = contextViewController
             }
             
-            contextController?.setNode(name: nodeName, for: deviceId)
+            contextController?.setNode(name: nodeName, device: deviceId, appId: appId)
             
-            // Implement more context buttons as required per your app implementation.
-            guard let srHistoryButton = contextController?.srHistoryButton else {
-                    os_log("Could not get node buttons")
+            guard let srHistoryButton = contextController?.srHistoryButton,
+                let noteHistoryButton = contextController?.noteHistoryButton,
+                let threeDPrintButton = contextController?.threeDPrintButton,
+                let orderButton = contextController?.orderButton else {
+                    os_log(.error, "Could not get node buttons")
                     return
             }
             
             contextController?.addActionButton(srHistoryButton)
+            
+            //TODO: Add notes function for Engagement Cloud.
+            // Until then, only add the notes button when we're using service cloud.
+            if (UIApplication.shared.delegate as? AppDelegate)?.appServerConfigs?.serverConfigs?.service?.application == .serviceCloud {
+                contextController?.addActionButton(noteHistoryButton)
+            }
+            
+            contextController?.addActionButton(threeDPrintButton)
+            contextController?.addActionButton(orderButton)
             
             // Retrieve any remote data related to this node for display (sensors, etc.)
             guard let nodeName = node.name else { return }
@@ -1683,15 +1858,19 @@ class ARViewController:
             }
             
             if self.nodeSensorCache[nodeName] == nil {
-                ICSBroker.shared.getNodeData(nodeName: nodeName, completion: { result in
+                (UIApplication.shared.delegate as? AppDelegate)?.integrationBroker?.getNodeData(nodeName: nodeName, completion: { (result) in
                     switch result {
                     case .success(let data):
                         guard let sensors = data.sensors else { return }
                         self.nodeSensorCache[nodeName] = sensors
-                        showSensorButton()
+                        
+                        DispatchQueue.main.async {
+                            showSensorButton()
+                        }
+                        
                         break
                     default:
-                        os_log("Could not get sensors for %@", nodeName)
+                        os_log(.error, "Could not get sensors for %@", nodeName)
                         break
                     }
                 })
@@ -1704,7 +1883,7 @@ class ARViewController:
             guard let params = (UIApplication.shared.delegate as? AppDelegate)?.openUrlParams else { return }
             guard let openProcedureName = params["procedure"]?.removingPercentEncoding?.lowercased() else { return }
             guard contextController?.arNodeContext?.procedures != nil else { return }
-            guard let procedure = contextController!.arNodeContext!.procedures!.first(where: {  $0.name.lowercased() == openProcedureName }) else { return }
+            guard let procedure = contextController!.arNodeContext!.procedures!.first(where: { $0.name.lowercased() == openProcedureName }) else { return }
             
             self.proceduresHandler(contextController, procedure: procedure, completion: nil)
             
@@ -1713,8 +1892,8 @@ class ARViewController:
         }
         
         DispatchQueue.main.async {
-            if self.tappedNode != nil && self.tappedNode != node {
-                self.removeTappedNodeContext(self.tappedNode!, removeContextView: false, completion: {
+            if let tappedNode = self.tappedNode {
+                self.removeTappedNodeContext(tappedNode, removeContextView: false, completion: {
                     DispatchQueue.main.async {
                         applyContext(node)
                     }
@@ -1756,8 +1935,8 @@ class ARViewController:
         
         for node in overlay.children {
             #if DEBUG
-            os_log("View Frame Size: Width (%.5f) height (%.5f)", self.view.frame.size.width, self.view.frame.size.height)
-            os_log("Node Frame Size: Width (%.5f) height (%.5f)", node.calculateAccumulatedFrame().size.width, node.calculateAccumulatedFrame().size.height)
+            os_log(.debug, "View Frame Size: Width (%.5f) height (%.5f)", self.view.frame.size.width, self.view.frame.size.height)
+            os_log(.debug, "Node Frame Size: Width (%.5f) height (%.5f)", node.calculateAccumulatedFrame().size.width, node.calculateAccumulatedFrame().size.height)
             #endif
             
             var scale = node.xScale
@@ -1774,9 +1953,9 @@ class ARViewController:
         }
     }
     
-    /**
-     Prepares the SR overlay with IoT data and then displays it.
-     */
+    // MARK: - Overlay Display Methods
+
+    /// Prepares the SR overlay with IoT data and then displays it.
     private func showSrOverlay() {
         //Ensure that only one overlay view is visible at a time.
         guard self.overlayViewController == nil else { return }
@@ -1788,9 +1967,10 @@ class ARViewController:
         }
         
         vc.overlayDelegate = self
+        vc.applicationId = self.iotApplicationId
         vc.iotDevice = self.iotDevice
         vc.lastSensorMessage = self.lastSensorMessage
-        vc.selectedPart = self.tappedNode?.name
+        vc.selectedPart = self.tappedNode?.name ?? self.activeRecognitionContext?.name // Use the recognition context as the part if there is no actively tapped node
         vc.screenshot = self.sceneView.snapshot()
         
         self.addChild(vc)
@@ -1826,13 +2006,13 @@ class ARViewController:
     }
     
     /**
-     Adds an AR Attribution (content from a SpriteKit file in 2D space) to a SCNNode.  This method is used during procedure animations to help direct the user for interacting with the real-world object.
+     Adds an AR attribute (content from a SpriteKit file in 2D space) to a SCNNode.  This method is used during procedure animations to help direct the user for interacting with the real-world object.
      
-     - Parameter nodeNames: An array of nodes to apply the attribution to.  This will search the scene's node tree for nodes with the applicable name.
-     - Parameter attibutions: An array of attributions to apply to the node.
+     - Parameter nodeNames: An array of nodes to apply the attribute to.  This will search the scene's node tree for nodes with the applicable name.
+     - Parameter attibutions: An array of attributes to apply to the node.
      */
-    private func addAttributionsToSceneNodes(_ nodeNames: [String], attributions: [ARAnimation.Attribution]) {
-        // Get nodes that were listed for attribution
+    private func addAttributesToSceneNodes(_ nodeNames: [String], attributes: [ARAnimation.Attribute]) {
+        // Get nodes that were listed for attribute
         var nodes: [SCNNode] = []
         
         for nodeName in nodeNames {
@@ -1840,23 +2020,23 @@ class ARViewController:
             nodes.append(node)
         }
         
-        // Find the scenes for attribution and apply them to nodes
-        for attribution in attributions {
+        // Find the scenes for attribute and apply them to nodes
+        for attribute in attributes {
             #if DEBUG
-            os_log(.debug, "Adding attribution: %@", attribution.name)
+            os_log(.debug, "Adding attribute: %@", attribute.name)
             #endif
             
-            guard let sceneFrame = attribution.sceneFrame else { return }
-            guard let image = attribution.image?.getImage() else { continue }
+            guard let sceneFrame = attribute.sceneFrame else { return }
+            guard let image = attribute.image?.getImage() else { continue }
             
             // Setup the spritekit scene
-            let attributionScene = SKScene(size: sceneFrame.getCGFrame())
-            attributionScene.backgroundColor = .clear
-            attributionScene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+            let attributeScene = SKScene(size: sceneFrame.getCGFrame())
+            attributeScene.backgroundColor = .clear
+            attributeScene.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             
-            // create a shape node to draw the attribution image
+            // create a shape node to draw the attribute image
             let shapeNode = SKShapeNode(rectOf: sceneFrame.getCGFrame())
-            shapeNode.name = "attributionNode"
+            shapeNode.name = "attributeNode"
             shapeNode.xScale = 1
             shapeNode.yScale = 1
             shapeNode.strokeColor = .clear
@@ -1869,17 +2049,17 @@ class ARViewController:
             shapeNode.fillTexture = texture
             
             // add the shapenode to the scene
-            attributionScene.addChild(shapeNode)
+            attributeScene.addChild(shapeNode)
             
             for node in nodes {
                 let plane = SCNPlane(width: CGFloat(sceneFrame.width), height: CGFloat(sceneFrame.height))
-                let scale = attribution.scale != nil ? attribution.scale!.getVector3() : SCNVector3(1, 1, 1)
-                let eulerAngles = attribution.eulerAngles != nil ? attribution.eulerAngles!.getVector3Radians() : SCNVector3(0, 0, 0)
-                let position = attribution.position != nil ? attribution.position!.getVector3() : SCNVector3(0, 0.2, 0)
+                let scale = attribute.scale != nil ? attribute.scale!.getVector3() : SCNVector3(1, 1, 1)
+                let eulerAngles = attribute.eulerAngles != nil ? attribute.eulerAngles!.getVector3Radians() : SCNVector3(0, 0, 0)
+                let position = attribute.position != nil ? attribute.position!.getVector3() : SCNVector3(0, 0.2, 0)
                 
-                self.createPlaneNodeForSpriteInScene(newNodeName: attribution.name, plane: plane, spriteKitScene: attributionScene, scale: scale, eulerAngles: eulerAngles, isFacingUser: false) { (newNode) in
+                self.createPlaneNodeForSpriteInScene(newNodeName: attribute.name, plane: plane, spriteKitScene: attributeScene, scale: scale, eulerAngles: eulerAngles, isFacingUser: false) { (newNode) in
                     #if DEBUG
-                    os_log("Adding attribution node (%@) to %@", newNode.name!, node.name!)
+                    os_log("Adding attribute node (%@) to %@", newNode.name!, node.name!)
                     #endif
                     
                     newNode.opacity = 1
@@ -1893,17 +2073,17 @@ class ARViewController:
     }
     
     /**
-     Removes any immediate child nodes with the term "Attribution" in the child node name.
+     Removes any immediate child nodes with the term "Attribute" in the child node name.
      
-     - Parameter parentNodeName: the name of the parent node to search for Attribution child nodes.
-     - Parameter attributions: An array of attribution objects to remove from the given node.
+     - Parameter parentNodeName: the name of the parent node to search for attribute child nodes.
+     - Parameter attributes: An array of attribute objects to remove from the given node.
      */
-    private func removeAttributionChildNodes(_ parentNodeName: String, attributions: [ARAnimation.Attribution]) {
+    private func removeAttributeChildNodes(_ parentNodeName: String, attributes: [ARAnimation.Attribute]) {
         guard let parentNode = self.sceneView.scene.rootNode.childNode(withName: parentNodeName, recursively: true) else { return }
         
-        for attribution in attributions {
-            let removeAttribution = attribution.removeAttributionsAfterAnimation ?? true
-            guard removeAttribution == true, let node = parentNode.childNode(withName: attribution.name, recursively: false) else { continue }
+        for attribute in attributes {
+            let removeAttribute = attribute.removeAttributesAfterAnimation ?? true
+            guard removeAttribute == true, let node = parentNode.childNode(withName: attribute.name, recursively: false) else { continue }
             node.removeFromParentNode()
         }
     }
@@ -1919,7 +2099,7 @@ class ARViewController:
         guard let nodeName = node.name else { return }
         
         #if DEBUG
-        os_log("Showing sensors for node: %@", nodeName)
+        os_log(.debug, "Showing sensors for node: %@", nodeName)
         #endif
         
         if let sensors = self.nodeSensorCache[nodeName] {
@@ -1928,7 +2108,7 @@ class ARViewController:
                 for sensor in sensors {
                     guard let sensorName = sensor.name else { return }
                     
-                    let sensorNodeName = String(format: "%@_SensorNode", sensorName)
+                    let sensorNodeName = String(format: "%@_SensorNode", sensorName.replacingOccurrences(of: " ", with: "_"))
                     
                     // If the node already contains a sensor with this name, then no need to add again
                     if let _ = node.childNode(withName: sensorNodeName, recursively: true) { continue }
@@ -2010,7 +2190,7 @@ class ARViewController:
                     self.createPlaneNodeForSpriteInScene(newNodeName: sensorNodeName, plane: planeSize, spriteKitScene: sensorScene, scale: scale, eulerAngles: angles, isFacingUser: alwaysFacingUser, completion: { (planeNode) in
                         #if DEBUG
                         let nodeName = planeNode.name ?? ""
-                        os_log("Adding node: %@", nodeName)
+                        os_log(.debug, "Adding node: %@", nodeName)
                         #endif
                         
                         planeNode.scale = scale
@@ -2041,12 +2221,12 @@ class ARViewController:
         guard let nodeName = node.name else { return }
         
         #if DEBUG
-        os_log("Removing sensors for node: %@", nodeName)
+        os_log(.debug, "Removing sensors for node: %@", nodeName)
         #endif
         
         for childNode in node.childNodes {
             if let nodeName = childNode.name, nodeName.contains("_SensorNode") {
-                childNode.runAction(.fadeOut(duration: self.defaultDuration)) {
+                childNode.runAction(.fadeOut(duration: 0.1)) {
                     childNode.removeFromParentNode()
                 }
             }
@@ -2101,23 +2281,18 @@ class ARViewController:
             completion(newNode)
         }
     }
-    
-    /**
-     Method that sets the text values on the sensor nodes.  This is required, as opposed to using the SensorScene methods, because the nodes have been removed from the spritekit scenes and placed in this scenekit scene.
-     */
+
+    /// Method that sets the text values on the sensor nodes.  This is required, as opposed to using the SensorScene methods, because the nodes have been removed from the spritekit scenes and placed in this scenekit scene.
     private func updateSensorTextNodes() {
         // Will cause a bad thread access if run on background thread
         DispatchQueue.main.async {
             guard let lastSensorMessage = self.lastSensorMessage, let sensorData = lastSensorMessage.payload?.data else {
-                os_log("Cannot update text nodes since there is no sensor data")
+                os_log(.error, "Cannot update text nodes since there is no sensor data")
                 return
             }
             
             guard let selectedNode = self.tappedNode, let nodeName = selectedNode.name else {
-                #if DEBUG
-                os_log("No node selected to update sensors for.")
-                #endif
-                
+                os_log(.info, "No node selected to update sensors for.")
                 return
             }
             
@@ -2129,13 +2304,13 @@ class ARViewController:
                     let sensorNodeWithSKMaterialName = String(format: "%@_SensorNode_MaterialNode", sensorName)
                     
                     guard let scene = selectedNode.childNode(withName: sensorNodeWithSKMaterialName, recursively: true)?.geometry?.firstMaterial?.diffuse.contents as? SKScene else {
-                        os_log("No node with name '%@' in scene", sensorNodeWithSKMaterialName)
+                        os_log(.error, "No node with name '%@' in scene", sensorNodeWithSKMaterialName)
                         continue
                     }
                     
                     guard let sensorValue = Double("\(val)") else {
                         #if DEBUGIOT
-                        os_log("Count not convert %.f5 to a Double", val)
+                        os_log(.debug, "Count not convert %.f5 to a Double", val)
                         #endif
                         
                         continue
@@ -2143,14 +2318,14 @@ class ARViewController:
                     
                     guard let wrapper = scene.childNode(withName: "//sensorWrapper") as? SKShapeNode, let label = wrapper.childNode(withName: "//sensorLabel") as? SKLabelNode else {
                         #if DEBUGIOT
-                        os_log("Cannot find sensor label for %@", sensorName)
+                        os_log(.debug, "Cannot find sensor label for %@", sensorName)
                         #endif
                         
                         continue
                     }
                     
                     #if DEBUGIOT
-                    os_log("Updating %@: %.f5", sensorName, val)
+                    os_log(.debug, "Updating %@: %.f5", sensorName, val)
                     #endif
                     
                     let textFormat = sensor.label?.formatter ?? "%@"
@@ -2160,7 +2335,6 @@ class ARViewController:
                     
                     if sensorValue < min || sensorValue > max {
                         wrapper.fillColor = .red
-                        self.displayWarningContext(message: "Warning: Tap Red Sensor for Details", for: 3)
                     } else {
                         wrapper.fillColor = UIColor(white: 1.0, alpha: 1.0)
                     }
@@ -2176,7 +2350,7 @@ class ARViewController:
      */
     private func sensorTapped(_ node: SCNNode) {
         #if DEBUG
-        os_log("Item is a sensor. Checking actions.")
+        os_log(.debug, "Item is a sensor. Checking actions.")
         #endif
         
         guard let nodeName = node.name else { return }
@@ -2190,26 +2364,27 @@ class ARViewController:
         guard let sensorActionType = sensor.action?.type else { return }
         
         #if DEBUG
-        os_log("Sensor Action: %@", sensorActionType.rawValue)
+        os_log(.debug, "Sensor Action: %@", sensorActionType.rawValue)
         #endif
         
         switch sensorActionType {
         case .lineChart:
             #if DEBUG
-            os_log("Displaying line chart")
+            os_log(.debug, "Displaying line chart")
             #endif
             
-            guard let vc = UIStoryboard(name: "Charts", bundle: nil).instantiateViewController(withIdentifier: "LineChartViewController") as? LineChartViewController, let deviceId = self.iotDevice?.id else { return }
+            guard let navVc = UIStoryboard(name: "Charts", bundle: nil).instantiateInitialViewController() as? OverlayNavigationController, let vc = navVc.children.first as? LineChartViewController, let deviceId = self.iotDevice?.id, let appId = self.iotApplicationId else { return }
             
+            vc.title = String(format: "%@ Data", sensor.name!)
+            vc.applicationId = appId
             vc.deviceId = deviceId
             vc.sensor = sensor
-            vc.overlayDelegate = self
-            vc.title = String(format: "%@ Data", sensor.name!)
             
-            self.addChild(vc)
-            self.overlayViewController = vc
+            navVc.overlayDelegate = self
+            self.addChild(navVc)
+            self.overlayViewController = navVc
             
-            self.slideInView(vc.view)
+            self.slideInView(navVc.view)
             
             // Stop the timer when in background
             self.setSensorTimerState(to: false)
@@ -2220,7 +2395,7 @@ class ARViewController:
         case .url:
             guard let urlStr = sensor.action?.url, let url = URL(string: urlStr) else { return }
             #if DEBUG
-            os_log("Opening URL")
+            os_log(.debug, "Opening URL")
             #endif
             
             if UIApplication.shared.canOpenURL(url) {
@@ -2230,7 +2405,7 @@ class ARViewController:
             break
         case .volume:
             guard let scene = node.geometry?.firstMaterial?.diffuse.contents as? VideoScene else {
-                os_log("No SKScene applied to node as material")
+                os_log(.info, "No SKScene applied to node as material")
                 return
             }
             
@@ -2296,20 +2471,28 @@ class ARViewController:
         let userDefaultsInterval = UserDefaults.standard.double(forKey:  SensorConfigs.sensorRequestInterval.rawValue)
         let interval: Double = userDefaultsInterval >= 2.5 ? userDefaultsInterval : 5.0
         self.sensorTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { (timer) in
-            if !self.iotRequestInProcess {
-                self.iotRequestInProcess = true
-                
+            if !self.iotMessageRequestInProcess {
                 #if DEBUGIOT
                 os_log(.debug, "Starting sensor request process.")
                 #endif
-                guard let deviceId = self.iotDevice?.id else { return }
+                guard let applicationId = self.iotApplicationId, let deviceId = self.iotDevice?.id else {
+                    os_log(.error, "Device ID was not retrieved by recognition context mapping. Will not be able to get IoT sensor data for this device.")
+                    return
+                }
                 
-                ICSBroker.shared.getHistoricalDeviceMessages(deviceId, completion: { result in
-                    self.iotRequestInProcess = false
+                self.iotMessageRequestInProcess = true
+                
+                (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getHistoricalDeviceMessages(applicationId, deviceId, completion: { result in
+                    self.iotMessageRequestInProcess = false
                     
                     switch result {
                     case .success(let data):
-                        guard let message = data.items?[0] else { return }
+                        guard let items = data.items, items.count > 0 else {
+                            os_log(.error, "IoT device message not returned from IoT Cloud Service.")
+                            return
+                        }
+                        
+                        let message = items[0]
                         self.lastSensorMessage = message
                         
                         #if DEBUGIOT
@@ -2331,7 +2514,7 @@ class ARViewController:
                         os_log(.error, "Error getting data for sensors")
                         break
                     }
-                })
+                }, limit: 50)
             } else {
                 #if DEBUGIOT
                 os_log(.debug, "Sensor request already in process. Skipping scheduled call until it is completed.")
@@ -2343,30 +2526,6 @@ class ARViewController:
     //MARK: - Integration Methods
     
     /**
-     Method used to get the last message from IoTCS for the AR device.
-     
-     - Parameter completion: Completion handler that is called when the process finishes in either success or failure.
-     - Parameter message: A sensor message to pass to the competion or nil if the results did not retrieve a value.
-     */
-    private func getLastIoTMessage(completion: ((_ message: SensorMessage?) -> ())?) {
-        guard let deviceId = self.iotDevice?.id else { return }
-        
-        ICSBroker.shared.getHistoricalDeviceMessages(deviceId, completion: { result in
-            switch result {
-            case .success(let data):
-                guard let message = data.items?[0] else { completion?(nil); return }
-                self.lastSensorMessage = message
-                completion?(message)
-                
-                break
-            default:
-                completion?(nil)
-                break
-            }
-        })
-    }
-    
-    /**
      Method used to get IoT device data.
      
      - Parameter deviceId: The ID for the specific item that has been recognized.
@@ -2375,13 +2534,20 @@ class ARViewController:
     private func getDeviceData(_ deviceId: String, completion: (() -> ())?) {
         self.iotDevice = nil
         
-        ICSBroker.shared.getDeviceInfo(deviceId) { result in
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getDeviceInfo(deviceId) { result in
             switch result {
             case .success(let data):
                 self.iotDevice = data
                 
                 break
-            default:
+            case .failure(let failure):
+                failure.log()
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(title: "Connection Error", message: "Unable to get device information from ICS. There may be a network issue between your device and ICS.", preferredStyle: .alert)
+                    let action = UIAlertAction(title: "OK", style: .default, handler: nil)
+                    alert.addAction(action)
+                    self.present(alert, animated: true, completion: nil)
+                }
                 break
             }
             
@@ -2394,9 +2560,6 @@ class ARViewController:
     func closeRequested(sender: UIView) {
         self.slideOutView(sender, completion: {
             DispatchQueue.main.async {
-                self.overlayViewController?.removeFromParent()
-                self.overlayViewController = nil
-                
                 self.setSensorTimerState(to: true)
                 
                 if self.tappedNode != nil {
@@ -2406,6 +2569,9 @@ class ARViewController:
                 // Try to restart tracking based on the existing configuration.
                 guard let configuration = self.sceneView.session.configuration else { self.resetScene(true); return }
                 self.sceneView.session.run(configuration, options: .resetTracking)
+                
+                self.overlayViewController?.removeFromParent()
+                self.overlayViewController = nil
             }
         })
     }
@@ -2414,7 +2580,7 @@ class ARViewController:
     
     func resetButtonPressed(_ sender: ApplicationButtonsViewController) {
         #if DEBUG
-        os_log("Reset Button Handler")
+        os_log(.debug, "Reset Button Handler")
         #endif
         
         self.resetScene(true)
@@ -2422,17 +2588,17 @@ class ARViewController:
     
     func helpButtonPressed(_ sender: ApplicationButtonsViewController) {
         #if DEBUG
-        os_log("Help Manual Handler")
+        os_log(.debug, "Help Manual Handler")
         #endif
         
         //Ensure that only one overlay view is visible at a time.
         guard self.overlayViewController == nil else { return }
-        guard let helpController = UIStoryboard(name: "help", bundle: nil).instantiateInitialViewController() as? HelpViewController else { return }
+        guard let navVc = UIStoryboard(name: "help", bundle: nil).instantiateInitialViewController() as? OverlayNavigationController else { return }
         
-        helpController.overlayDelegate = self
-        self.overlayViewController = helpController
-        self.addChild(helpController)
-        self.slideInView(helpController.view)
+        navVc.overlayDelegate = self
+        self.overlayViewController = navVc
+        self.addChild(navVc)
+        self.slideInView(navVc.view)
         
         // Stop the timer when in background
         self.setSensorTimerState(to: false)
@@ -2471,7 +2637,7 @@ class ARViewController:
     
     func listServiceRequestsHandler(_ sender: NodeContextViewController?, completion: (() -> ())? = nil) {
         #if DEBUG
-        os_log("List Service Request Handler")
+        os_log(.debug, "List Service Request Handler")
         #endif
         
         self.showSrOverlay()
@@ -2482,9 +2648,100 @@ class ARViewController:
         completion?()
     }
     
+    func listNotesHandler(_ sender: NodeContextViewController?, nodeName: String, completion: (() -> ())?) {
+        #if DEBUG
+        os_log(.debug, "List Notes Handler")
+        #endif
+        
+        //Ensure that only one overlay view is visible at a time.
+        guard self.overlayViewController == nil else { completion?(); return }
+        
+        guard let vc = UIStoryboard(name: "Notes", bundle: nil).instantiateInitialViewController() as? NotesSplitViewController else { completion?(); return }
+        
+        vc.overlayDelegate = self
+        vc.delegate = self
+        vc.deviceId = self.iotDevice?.id
+        vc.nodeName = nodeName
+        
+        self.addChild(vc)
+        self.overlayViewController = vc
+        self.slideInView(vc.view)
+        
+        // Stop the timer when in background
+        self.setSensorTimerState(to: false)
+        
+        self.sceneView.session.pause()
+        
+        completion?()
+    }
+    
+    func printItemHandler(_ sender: NodeContextViewController?, completion: (() -> ())? = nil) {
+        #if DEBUG
+        os_log(.debug, "Print Item Handler")
+        #endif
+        
+        //Ensure that only one overlay view is visible at a time.
+        guard self.overlayViewController == nil, let tappedNode = self.tappedNode, let tappedNodeName = tappedNode.name else {
+            completion?()
+            return
+        }
+        
+        let tappedNodeImage = self.sceneView.snapshot()
+        
+        let alert = UIAlertController(title: "Print Item", message: String(format: "Confirm that you would like to print '%@' as selected in yellow.", tappedNodeName), preferredStyle: .alert)
+        let printAction = UIAlertAction(title: "Print", style: UIAlertAction.Style.default, handler: { action in
+            let printedAlert = UIAlertController(title: "Print Queued", message: "Your print request has been queued to your 3D printer.", preferredStyle: .alert)
+            let printedAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+            printedAlert.addAction(printedAction)
+            
+            DispatchQueue.main.async {
+                self.present(printedAlert, animated: true, completion: nil)
+            }
+        })
+        let cancel = UIAlertAction(title: "Cancel", style: UIAlertAction.Style.cancel, handler: nil)
+        
+        alert.addImageAction(tappedNodeImage)
+        alert.addAction(printAction)
+        alert.addAction(cancel)
+        
+        self.present(alert, animated: true, completion: nil)
+        
+        completion?()
+    }
+    
+    func orderItemHandler(_ sender: NodeContextViewController?, completion: (() -> ())? = nil) {
+        #if DEBUG
+        os_log(.debug, "Order Item Handler")
+        #endif
+        
+        //Ensure that only one overlay view is visible at a time.
+        guard self.overlayViewController == nil, let tappedNode = self.tappedNode?.name else {
+            completion?()
+            return
+        }
+        
+        let alert = UIAlertController(title: "1-Click Order", message: String(format: "Confirm that you would like to auto-order %@.", tappedNode), preferredStyle: .alert)
+        let order = UIAlertAction(title: "Order", style: UIAlertAction.Style.default, handler: { action in
+            let orderedAlert = UIAlertController(title: "Order Completed", message: "Your order has been placed.", preferredStyle: .alert)
+            let orderAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+            orderedAlert.addAction(orderAction)
+            
+            DispatchQueue.main.async {
+                self.present(orderedAlert, animated: true, completion: nil)
+            }
+        })
+        let cancel = UIAlertAction(title: "Cancel", style: UIAlertAction.Style.cancel, handler: nil)
+        alert.addAction(order)
+        alert.addAction(cancel)
+        
+        self.present(alert, animated: true, completion: nil)
+        
+        completion?()
+    }
+    
     func showPdfHandler(_ sender: NodeContextViewController?, answer: AnswerResponse, completion: (() -> ())?) {
         #if DEBUG
-        os_log("Show Manual Handler")
+        os_log(.debug, "Show Manual Handler")
         #endif
         
         //Ensure that only one overlay view is visible at a time.
@@ -2510,7 +2767,7 @@ class ARViewController:
         let showPdfView: (PdfAnswer) -> () = { manual in
             guard let url = manual.url else {
                 #if DEBUG
-                os_log("PDF URL is empty. Cancelling.")
+                os_log(.debug, "PDF URL is empty. Cancelling.")
                 #endif
                 
                 DispatchQueue.main.async {
@@ -2520,7 +2777,7 @@ class ARViewController:
             }
             
             #if DEBUG
-            os_log("Attempting to retrieve PDF from: %@", url.absoluteString)
+            os_log(.debug, "Attempting to retrieve PDF from: %@", url.absoluteString)
             #endif
             
             manual.getPDFFile(completion: { (pdf) in
@@ -2533,24 +2790,20 @@ class ARViewController:
                     return
                 }
                 
-                guard let vc = UIStoryboard(name: "PDF", bundle: nil).instantiateViewController(withIdentifier: "PDFViewController") as? PDFViewController else {
-                    completion?()
-                    return
-                }
-                
-                vc.pdfDoc = pdf
-                vc.overlayDelegate = self
-                
                 DispatchQueue.main.async {
+                    guard let navVc = UIStoryboard(name: "PDF", bundle: nil).instantiateInitialViewController() as? OverlayNavigationController, let vc = navVc.children.first as? PDFViewController  else {
+                        completion?()
+                        return
+                    }
+                    
+                    navVc.overlayDelegate = self
+                    navVc.title = manual.title
+                    vc.pdfDoc = pdf
                     self.sceneView.session.pause()
                     
-                    self.addChild(vc)
-                    self.overlayViewController = vc
-                    self.slideInView(vc.view)
-                    
-                    if manual.title != nil && vc.navigationBar != nil {
-                        vc.navigationBar.topItem?.title = manual.title
-                    }
+                    self.addChild(navVc)
+                    self.overlayViewController = navVc
+                    self.slideInView(navVc.view)
                 }
                 
                 // Stop the timer when in background
@@ -2574,11 +2827,11 @@ class ARViewController:
             }
             
             do {
-                try ICSBroker.shared.getAnswer(id: id, completion: { result in
+                try (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getAnswer(id: id, completion: { result in
                     switch result {
                     case .success(let data):
                         guard var manual = data.xmlToType(object: PdfAnswer.self) else {
-                            os_log("Connot convert XML to pdf answer")
+                            os_log(.error, "Connot convert XML to pdf answer")
                             completion?()
                             pdfError()
                             return
@@ -2593,7 +2846,7 @@ class ARViewController:
                         
                         break
                     default:
-                        os_log("Did not get answer data back from ICS")
+                        os_log(.error, "Did not get answer data back from ICS")
                         completion?()
                         pdfError()
                         return
@@ -2617,12 +2870,12 @@ class ARViewController:
     
     func showSensorsHandler(_ sender: NodeContextViewController?, completion: (() -> ())? = nil) {
         #if DEBUG
-        os_log("Show Sensors Handler")
+        os_log(.debug, "Show Sensors Handler")
         #endif
         
         guard let activeNode = self.tappedNode else {
             #if DEBUG
-            os_log("No active node to show sensors")
+            os_log(.debug, "No active node to show sensors")
             #endif
             
             return
@@ -2641,7 +2894,7 @@ class ARViewController:
     
     func proceduresHandler(_ sender: NodeContextViewController?, procedure: ARProcedure, completion: (() -> ())?) {
         #if DEBUG
-        os_log("Procedure Handler")
+        os_log(.debug, "Procedure Handler")
         #endif
         
         self.showProcedure(procedure)
@@ -2651,7 +2904,7 @@ class ARViewController:
     
     func imageTappedHandler(_ sender: NodeContextViewController?, index: Int, completion: (() -> ())?) {
         #if DEBUG
-        os_log("Image Tapped Handler")
+        os_log(.debug, "Image Tapped Handler")
         #endif
         
         guard let images = sender?.arNodeContext?.images else {
@@ -2689,7 +2942,7 @@ class ARViewController:
     
     func nodeContextActionHandler(_ sender: NodeContextViewController?, action: ARNodeContext.TableRow.Action, completion: (() -> ())?) {
         #if DEBUG
-        os_log("Node Context Action Handler")
+        os_log(.debug, "Node Context Action Handler")
         #endif
         
         guard let type = action.type else {
@@ -2703,11 +2956,11 @@ class ARViewController:
             
             if UIApplication.shared.canOpenURL(url) {
                 #if DEBUG
-                os_log("Opening URL: %@", urlStr)
+                os_log(.debug, "Opening URL: %@", urlStr)
                 #endif
                 
                 UIApplication.shared.open(url, options: [:], completionHandler: { result in
-                    os_log("Opening external url: %@", urlStr)
+                    os_log(.info, "Opening external url: %@", urlStr)
                 })
             }
             else {
@@ -2722,7 +2975,7 @@ class ARViewController:
             guard let function = action.applicationFunction else { return }
             
             #if DEBUG
-            os_log("Opening Application Function: %@", function.rawValue)
+            os_log(.debug, "Opening Application Function: %@", function.rawValue)
             #endif
             
             switch function {
@@ -2734,8 +2987,7 @@ class ARViewController:
             default:
                 break
             }
-            
-            break
+        break
         }
         
         completion?()
@@ -2756,36 +3008,76 @@ class ARViewController:
     func procedureStop(_ sender: ProceduresViewController, completion: (() -> ())?) {
         self.returnNodes() {
             DispatchQueue.main.async {
-                guard let recognitionRootNode = self.activeRecognitionContext?.rootNodeName() else { return }
+                guard let recognitionRootNode = self.activeRecognitionContext?.nodeName() else { return }
                 guard let node = self.sceneView.scene.rootNode.childNode(withName: recognitionRootNode, recursively: true) else { return }
-                node.runAction(.rotateTo(x: 0, y: 0, z: 0, duration: 0.25))
+                
+                if let nodeName = node.name, let originalAngles = self.nodesOriginatingAngles?[nodeName] {
+                    node.runAction(.rotateTo(x: CGFloat(originalAngles.x), y: CGFloat(originalAngles.y), z: CGFloat(originalAngles.z), duration: 0.25))
+                } else {
+                    node.runAction(.rotateTo(x: 0, y: 0, z: 0, duration: 0.25))
+                }
+                
+                self.setTappedNodeContext(node)
             }
             completion?()
         }
         
         // Turn off simulated failure
-        guard let serverConfigs = (UIApplication.shared.delegate as? AppDelegate)?.appServerConfigs?.serverConfigs else { return }
-        guard let appId = serverConfigs.iot?.applicationId else { return }
-        guard let deviceId = self.deviceId else { return }
+        guard let appId = self.iotApplicationId else { return }
+        guard let deviceId = self.iotDevice?.id else { return }
         
-        DispatchQueue.global(qos: .background).async {
-            let request = DeviceEventTriggerRequest(value: false)
+        DispatchQueue.main.async {
+            let integrationBroker = (UIApplication.shared.delegate as! AppDelegate).integrationBroker!
             
-            ICSBroker.shared.triggerDeviceIssue(applicationId: appId, deviceId: deviceId, request: request, completion: { (result) in
-                switch result {
-                case .success(_):
-                    break
-                default:
-                    let alert = UIAlertController(title: "IoT Error", message: "There was an error disabling the IoT event after procedures were completed", preferredStyle: .alert)
-                    let action = UIAlertAction(title: "OK", style: .default, handler: nil)
-                    alert.addAction(action)
-                    
-                    DispatchQueue.main.async {
-                        self.present(alert, animated: true, completion: nil)
+            DispatchQueue.global(qos: .background).async {
+                // See if there is an action for this device associated with the "procedure end" event.
+                integrationBroker.getDeviceArActionMapping(appId, deviceId, completion: { (result) in
+                    switch result {
+                    case .success(let mapping):
+                        // If the device event mapping is not in the API response, then end.
+                        guard let iotEvent = mapping.iotTriggerName, mapping.arAppEvent == .procedureEnd else { return }
+                        
+                        // We found a device/event mapping.  Get device data so that we can make a call to ICS.
+                        integrationBroker.getDeviceInfo(deviceId, completion: { (result) in
+                            switch result {
+                            case .success(let device):
+                                let request = DeviceEventTriggerRequest(value: false)
+                                
+                                guard let model = device.deviceModels?.first(where: { $0.system != true })?.urn else { return }
+                                
+                                // Perform the proper call to IoT actions based on the mapping.
+                                integrationBroker.triggerDeviceIssue(applicationId: appId, deviceId: deviceId, request: request, deviceModel: model, action: iotEvent, completion: { (result) in
+                                    switch result {
+                                    case .success(_):
+                                        // Perform any other required work after the action is completed.
+                                        
+                                        break
+                                    default:
+                                        let alert = UIAlertController(title: "IoT Error", message: "There was an error disabling the IoT event after procedures were completed", preferredStyle: .alert)
+                                        let action = UIAlertAction(title: "OK", style: .default, handler: nil)
+                                        alert.addAction(action)
+                                        
+                                        DispatchQueue.main.async {
+                                            self.present(alert, animated: true, completion: nil)
+                                        }
+                                        break
+                                    }
+                                })
+                                
+                                break
+                            case .failure(let failure):
+                                failure.log()
+                                break
+                            }
+                        })
+                        
+                        break
+                    case .failure(let failure):
+                        failure.log()
+                        break
                     }
-                    break
-                }
-            })
+                })
+            }
         }
     }
     
@@ -2793,7 +3085,7 @@ class ARViewController:
         // Clean up any movements or animations prior to the next step occurring
         guard let step = sender.procedure?.steps?[currentIndex], let nodeOrginalPositions = step.nodeOriginalPositions, nodeOrginalPositions.count > 0 else {
             #if DEBUG
-            os_log("No original positions found for step.")
+            os_log(.debug, "No original positions found for step.")
             #endif
             
             completion?()
@@ -2801,13 +3093,17 @@ class ARViewController:
         }
         
         #if DEBUG
-        os_log("Returning nodes to original positions in step.")
+        os_log(.debug, "Returning nodes to original positions in step.")
         #endif
         
         for (index, position) in nodeOrginalPositions.enumerated() {
             guard let node = self.sceneView.scene.rootNode.childNode(withName: position.key, recursively: true) else {
                 completion?()
                 return
+            }
+            
+            if let nodeName = node.name, let alpha = sender.procedure?.steps?[currentIndex].nodeOriginalOpacity?[nodeName] {
+                node.runAction(.fadeOpacity(to: alpha, duration: self.defaultDuration))
             }
             
             if index == nodeOrginalPositions.count - 1 {
@@ -2840,11 +3136,13 @@ class ARViewController:
         do {
             try self.playAnimations(animations: animations) {
                 var nodePositions: [String:SCNVector3] = [:]
+                var nodeOpacities: [String:CGFloat] = [:]
                 
                 var trackPositions: ((SCNNode) -> ())!
                 trackPositions = { node in
                     if let nodeName = node.name {
                         nodePositions[nodeName] = node.position
+                        nodeOpacities[nodeName] = node.opacity
                     }
                     
                     if node.childNodes.count > 0 {
@@ -2863,6 +3161,7 @@ class ARViewController:
                 }
                 
                 sender.setNodePositionsForCurrentStep(nodePositions)
+                sender.setNodeAplhasForCurrentStep(nodeOpacities)
                 
                 self.gesturesEnabled = true
                 self.animatingParts = false

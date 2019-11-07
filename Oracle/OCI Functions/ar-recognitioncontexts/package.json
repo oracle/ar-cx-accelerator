@@ -1,0 +1,14 @@
+{
+	"name": "ar-recognitioncontexts",
+    "version": "1.0.0",
+	"description": "Gets AR recognition contexts",
+	"main": "src/index.js",
+	"author": "Scott Harwell",
+	"license": "UPL-1.0",
+	"dependencies": {
+		"@fnproject/fdk": ">=0.0.15"
+	},
+	"devDependencies": {
+		"@types/node": "^12.7.4"
+	}
+}

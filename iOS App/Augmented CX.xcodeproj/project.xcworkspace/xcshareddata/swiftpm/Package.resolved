@@ -1,0 +1,52 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "CryptorRSA",
+        "repositoryURL": "https://github.com/IBM-Swift/BlueRSA.git",
+        "state": {
+          "branch": null,
+          "revision": "e906f5e93426bb43ad7ac37cc20008d8fae608d9",
+          "version": "1.0.34"
+        }
+      },
+      {
+        "package": "Charts",
+        "repositoryURL": "https://github.com/danielgindi/Charts.git",
+        "state": {
+          "branch": null,
+          "revision": "dbf7fa2891270f88aeafc872ea0beddb344af94b",
+          "version": "3.4.0"
+        }
+      },
+      {
+        "package": "CryptoSwift",
+        "repositoryURL": "https://github.com/krzyzanowskim/CryptoSwift.git",
+        "state": {
+          "branch": null,
+          "revision": "90e5b7af823d869fa8dea5a3abc7d95b6cb04c8c",
+          "version": "1.1.3"
+        }
+      },
+      {
+        "package": "OciRequestSigner",
+        "repositoryURL": "https://github.com/scottharwell/SwiftOciRequestSigner.git",
+        "state": {
+          "branch": null,
+          "revision": "f704afc9316e0270b8bb6c9ef7e8aa65beb33649",
+          "version": "1.0.2"
+        }
+      },
+      {
+        "package": "XMLParsing",
+        "repositoryURL": "https://github.com/ShawnMoore/XMLParsing.git",
+        "state": {
+          "branch": null,
+          "revision": "2b77a8078d9695aac1a0e5806768e819025174c3",
+          "version": "0.0.3"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

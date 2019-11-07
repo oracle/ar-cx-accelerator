@@ -17,13 +17,19 @@ import ARKit
  Helper to decode a rectangle from JSON.
  */
 struct ARRect: Decodable {
+    
+    /// Width of the rectangle.
     var width: Double
+    
+    /// Height of the rectangle
     var height: Double
     
+    /// Get a CGFrame object from the height / width measurements.
     func getCGFrame() -> CGSize {
         return CGSize(width: CGFloat(width), height: CGFloat(height))
     }
     
+    /// Get a SCNPlane object from the height / width measurements.
     func getPlane() -> SCNPlane {
         return SCNPlane(width: CGFloat(width), height: CGFloat(height))
     }

@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BuildNumber</key>
+	<integer>0</integer>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -21,7 +23,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -34,19 +36,71 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>oiafinsconsumer</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>oel6.vbox.oracle.com</key>
+			<dict>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSIncludeSubdomains</key>
+				<true/>
+				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>This application will use the camera for Augmented Reality.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>This application will use your microphone when you tap the microphone icon for chat.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This application will use speach transcription for text chat services.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This application uses location data to support beacons.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>fa-brands-400.ttf</string>
+		<string>fa-regular-400.ttf</string>
+		<string>fa-solid-900.ttf</string>
+		<string>OracleSans_A_Bd.ttf</string>
+		<string>OracleSans_A_BdIt.ttf</string>
+		<string>OracleSans_A_It.ttf</string>
+		<string>OracleSans_A_Lt.ttf</string>
+		<string>OracleSans_A_LtIt.ttf</string>
+		<string>OracleSans_A_Rg.ttf</string>
+		<string>OracleSans_A_SBd.ttf</string>
+		<string>OracleSans_A_SBdIt.ttf</string>
+		<string>OracleSans_A_ULt.ttf</string>
+		<string>OracleSans_A_ULtIt.ttf</string>
+		<string>OracleSans_A_XBd.ttf</string>
+		<string>OracleSans_A_XBdIt.ttf</string>
+		<string>OracleSans_Bd.ttf</string>
+		<string>OracleSans_BdIt.ttf</string>
+		<string>OracleSans_It.ttf</string>
+		<string>OracleSans_Lt.ttf</string>
+		<string>OracleSans_LtIt.ttf</string>
+		<string>OracleSans_Rg.ttf</string>
+		<string>OracleSans_SBd.ttf</string>
+		<string>OracleSans_SBdIt.ttf</string>
+		<string>OracleSans_ULt.ttf</string>
+		<string>OracleSans_ULtIt.ttf</string>
+		<string>OracleSans_XBd.ttf</string>
+		<string>OracleSans_XBdIt.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>external-accessory</string>
+		<string>fetch</string>
+		<string>voip</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -56,13 +110,15 @@
 		<string>armv7</string>
 		<string>arkit</string>
 	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UIStatusBarHidden</key>
 	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>

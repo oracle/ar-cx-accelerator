@@ -27,11 +27,13 @@ class ServiceRequestDetailsNavigationViewController: UINavigationController , UI
         switch segue.identifier {
         case "CreateSRSegue":
             guard let svc = sender as? ServiceRequestSplitViewController else { return }
+            guard let appId = svc.applicationId else { return }
             guard let device = svc.iotDevice else { return }
             guard let part = svc.selectedPart else { return }
             guard let controller = segue.destination as? CreateServiceRequestViewController else { return }
             
             controller.delegate = svc
+            controller.applicationId = appId
             controller.iotDevice = device
             controller.selectedPart = part
             controller.screenshot = svc.screenshot

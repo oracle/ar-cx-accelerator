@@ -73,10 +73,14 @@ class ServiceRequestTableViewController: UITableViewController {
     // MARK: - IBAction Methods
     
     @IBAction private func navigateBack(_ sender: UIBarButtonItem){
+        sender.logClick()
+        
         self.delegate?.closeRequested()
     }
     
     @IBAction private func addButtonHandler(_ sender: UIBarButtonItem){
+        sender.logClick()
+        
         if let path = self.tableView.indexPathForSelectedRow {
             self.tableView.deselectRow(at: path, animated: true)
         }
@@ -117,6 +121,8 @@ class ServiceRequestTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        AppEventRecorder.shared.record(name: "SR Selected", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: String(describing: type(of: self)), arAnchor: nil, arNode: nil, jsonString: nil, completion: nil)
+        
         self.delegate?.serviceRequestSelected(at: indexPath.row)
     }
     

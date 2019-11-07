@@ -17,7 +17,7 @@ import os
 /**
  Class to broker communication with ICS APIs.
  */
-class ICSBroker: IntegrationBroker {
+class ICSBroker: IntegrationBroker, RemoteIntegrationBroker {
     
     // MARK: - Properties
     
@@ -32,42 +32,41 @@ class ICSBroker: IntegrationBroker {
     let session: URLSession!
     
     /**
-     Server configuration object that indicates how to communicate with ICS.
+     Server configuration object that indicates how to communicate with ICS and other applications.
      */
     private var serverConfigs: ServerConfigs?
     
     // MARK: - Enums
     
     private enum ICSEndpoints : String {
-        case configs = "/integration/flowapi/rest/AR_APPLICATIO_CONFIGURAT/v01/ar/configs"
-        case deviceData = "/integration/flowapi/rest/AR_GET_IOT_DEVICE_DATA/v01/" //append device ID
-        case deviceMessages = "/integration/flowapi/rest/AR_GET_IOT_DEVICE_MESSAG/v01/" //append device ID
-        case deviceTriggerIssue = "/integration/flowapi/rest/AR_TRIGGER_DEVICE_ISSUE/v01/" //append application ID - slash - device ID
-        case ecServiceRequests = "/integration/flowapi/rest/GETSR_FOR_DEVICE_ENGAGE_CLOUD/v01/serviceRequests"
-        case scServiceRequests = "/integration/flowapi/rest/GET_SR_BY_DEVIC_SERVI_CLOUD/v01/serviceRequests"
-        case ecServiceRequest = "/integration/flowapi/rest/GET_ENGAGE_CLOUD_SERVIC_REQUES/v01/serviceRequests" // append ID for specific request
-        case scServiceRequest = "/integration/flowapi/rest/GET_SERVICE_CLOUD_INCIDENT/v01/incidents" // append ID for specific request
-        case ecCreateRequest = "/integration/flowapi/rest/CREATE_SERVIC_REQUES_ENGAGE_CLOU/v01/serviceRequests"
-        case scCreateRequest = "/integration/flowapi/rest/CREATE_SERVIC_REQUES_SERVIC_CLOU/v01/serviceRequests"
-        case scDeleteServiceRequest = "/integration/flowapi/rest/AR_DELETE_SERVIC_REQUES_OSVC/v01/serviceRequests" // append ID for specific request
-        case ecKnowledgebaseAnswerContentList = "/integration/flowapi/rest/ENGAGE_CLOUD_GET_KB_CONTEN/v01/contents"
-        case ecKnowledgebaseAnswerContentItem = "/integration/flowapi/rest/ENGAGE_CLOUD_KB_CONTEN_ITEM/v01/content/" // append knowledge ID for content item request
-        case scKnowledgebaseAnswerContentList = "/integration/flowapi/rest/AR_KNOWLE_ADVANC_CONTEN_SEARCH/v01/contents"
-        case scKnowledgebaseAnswerContentItem = "/integration/flowapi/rest/AR_KNOWL_ADVAN_GET_CONTE_ITEM/v01/contents" // append knowledge ID for content item request
-        case scGetDeviceNodeDetails = "/integration/flowapi/rest/AR_GET_DEVIC_NODE_OSVC_SOAP/v01/device/%@/node/%@" // string format this path with device id and node id
-        case scGetDeviceNodeNotes = "/integration/flowapi/rest/AR_GET_NOD_DET_BY_DEV_AND_NOD_SO/v01/device/%@/node/%@" // string format this path with device id and node id
-        case scCreateDeviceNodeNote = "/integration/flowapi/rest/AR_CREAT_NODE_NOTE_SERVI_CLOUD/v01/node/%d/Notes" // string format this path with proper node id
-        case scDeleteNote = "/integration/flowapi/rest/AR_DELETE_NOTE_OSVC/v01/node/%d/note/%d" // string format this path with the proper modelnode and note id
-        case scAppEvent = "/integration/flowapi/rest/AR_CREAT_APP_EVENT_SERVI_CLOUD/v01/app-events"
-    }
-    
-    /**
-     Errors that can be thrown by methods in this class
-    */
-    enum ICSError: Error {
-        case communicationFailure,
-        invalidServiceApp,
-        invalidServerConfigs
+        case configs = "/ic/api/integration/v1/flows/rest/AR_APPLICATIO_CONFIGURAT/1.0/ar/configs"
+        case arRecognitionContexts = "/ic/api/integration/v1/flows/rest/AR_RECOGNITIO_CONTEXTS/1.0/"
+        case arRecognitionDeviceMappings = "/ic/api/integration/v1/flows/rest/AR_DEVICE_RECOGNIT_MAPPING/1.0/"
+        case deviceData = "/ic/api/integration/v1/flows/rest/AR_GET_IOT_DEVICE_DATA/1.0/" //append device ID
+        case deviceMessages = "/ic/api/integration/v1/flows/rest/AR_GET_IOT_DEVICE_MESSAG/1.0/" //append device ID
+        case deviceTriggerIssue = "/ic/api/integration/v1/flows/rest/AR_TRIGGER_DEVICE_ISSUE/1.0/" //append application ID - slash - device ID
+        case ecServiceRequests = "/ic/api/integration/v1/flows/rest/GETSR_FOR_DEVICE_ENGAGE_CLOUD/1.0/serviceRequests"
+        case scServiceRequests = "/ic/api/integration/v1/flows/rest/GET_SR_BY_DEVIC_SERVI_CLOUD/1.0/serviceRequests"
+        case ecServiceRequest = "/ic/api/integration/v1/flows/rest/GET_ENGAGE_CLOUD_SERVIC_REQUES/1.0/serviceRequests" // append ID for specific request
+        case scServiceRequest = "/ic/api/integration/v1/flows/rest/GET_SERVICE_CLOUD_INCIDENT/1.0/incidents" // append ID for specific request
+        case ecCreateRequest = "/ic/api/integration/v1/flows/rest/CREATE_SERVIC_REQUES_ENGAGE_CLOU/1.0/serviceRequests"
+        case scCreateRequest = "/ic/api/integration/v1/flows/rest/CREATE_SERVIC_REQUES_SERVIC_CLOU/1.0/serviceRequests"
+        case scDeleteServiceRequest = "/ic/api/integration/v1/flows/rest/AR_DELETE_SERVIC_REQUES_OSVC/1.0/serviceRequests" // append ID for specific request
+        //TODO: Add AR_DELETE_SERVIC_REQUES_OSVC Engagement Cloud
+        case ecKnowledgebaseAnswerContentList = "/ic/api/integration/v1/flows/rest/ENGAGE_CLOUD_GET_KB_CONTEN/1.0/contents"
+        case ecKnowledgebaseAnswerContentItem = "/ic/api/integration/v1/flows/rest/ENGAGE_CLOUD_KB_CONTEN_ITEM/1.0/content/" // append knowledge ID for content item request
+        case scKnowledgebaseAnswerContentList = "/ic/api/integration/v1/flows/rest/AR_KNOWLE_ADVANC_CONTEN_SEARCH/1.0/contents"
+        case scKnowledgebaseAnswerContentItem = "/ic/api/integration/v1/flows/rest/AR_KNOWL_ADVAN_GET_CONTE_ITEM/1.0/contents" // append knowledge ID for content item request
+        case scGetDeviceNodeDetails = "/ic/api/integration/v1/flows/rest/AR_GET_DEVIC_NODE_OSVC_SOAP/1.0/device/%@/node/%@" // string format this path with device id and node id
+        //TODO: Add scGetDeviceNodeDetails Engagement Cloud
+        case scGetDeviceNodeNotes = "/ic/api/integration/v1/flows/rest/AR_GET_NOD_DET_BY_DEV_AND_NOD_SO/1.0/device/%@/node/%@" // string format this path with device id and node id
+        //TODO: Add scGetDeviceNodeNotes Engagement Cloud
+        case scCreateDeviceNodeNote = "/ic/api/integration/v1/flows/rest/AR_CREAT_NODE_NOTE_SERVI_CLOUD/1.0/node/%d/Notes" // string format this path with proper node id
+        //TODO: Add scCreateDeviceNodeNote Engagement Cloud
+        case scDeleteNote = "/ic/api/integration/v1/flows/rest/AR_DELETE_NOTE_OSVC/1.0/node/%d/note/%d" // string format this path with the proper modelnode and note id
+        //TODO: Add scDeleteNote Engagement Cloud
+        case scAppEvent = "/ic/api/integration/v1/flows/rest/AR_CREAT_APP_EVENT_SERVI_CLOUD/1.0/app-events"
+        //TODO: Add scAppEvent Engagement Cloud
     }
     
     // MARK: - Init Methods
@@ -87,38 +86,25 @@ class ICSBroker: IntegrationBroker {
         guard let hostname = UserDefaults.standard.string(forKey: ICSConfigs.hostname.rawValue),
             let username = UserDefaults.standard.string(forKey: ICSConfigs.username.rawValue),
             let password = UserDefaults.standard.string(forKey: ICSConfigs.password.rawValue) else {
-                throw ICSError.invalidServerConfigs
+                throw IntegrationError.invalidServerConfigs
         }
         
         return (hostname, username, password)
     }
     
-    // MARK: - Public Methods
+    // MARK: - RemoteIntegrationBrokerProtocol Methods
     
-    /**
-     Get the AR Configuration object that is served by ICS via remote endpoint.
-     
-     - Parameter completion: Callback method once the HTTP request completes.
-     */
     func getServerConfigs(completion: @escaping (Result<ServerConfigs, IntegrationBrokerError>) -> ()) {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            guard let messages = DataSimulator.performGet(object: ServerConfigs.self) else { completion(.failure(.noDataReturned)); return }
-            completion(.success(messages))
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else {
-            os_log("Could not obtain credentials to integrate with ICS.")
+            os_log(.error, "Could not obtain credentials to integrate with ICS.")
             completion(.failure(.requestCreationError))
             return
         }
         
         let urlStr = String(format: "https://%@%@", credentials.0, ICSEndpoints.configs.rawValue)
         
-        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
-            os_log("Could not create url request for application settings.")
+        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2, timeoutInterval: 15) else {
+            os_log(.error, "Could not create url request for application settings.")
             completion(.failure(.requestCreationError))
             return
         }
@@ -137,26 +123,68 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to get the IoT device information
-     
-     - Parameter deviceId: The ID for the device queried for.
-     - Parameter completion: Callback method once the HTTP request completes
-     */
-    func getDeviceInfo(_ deviceId: String, completion: @escaping (Result<IoTDevice, IntegrationBrokerError>) -> ()) {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            guard let messages = DataSimulator.performGet(object: IoTDevice.self) else { completion(.failure(.noDataReturned)); return }
-            completion(.success(messages))
+    func getRecognitionContext(major: Int, minor: Int, completion: @escaping (Result<ARRecognitionContext, IntegrationBrokerError>) -> ()) {
+        guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
+        
+        let urlStr = String(format: "https://%@%@", credentials.0, ICSEndpoints.arRecognitionContexts.rawValue)
+        
+        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2, timeoutInterval: 15) else {
+            completion(.failure(.requestCreationError))
             return
         }
         
+        self.asyncHttpRequest(session: self.session, request: urlRequest) { result in
+            switch result {
+            case .success(let data):
+                guard let parsedResponse = self.jsonDataHandler(decodableType: ARRecognitionContextArrayResponse.self, data: data) else { completion(.failure(.noDataReturned)); return }
+                guard let modelContext = parsedResponse.items?.first(where: { $0.major == major }) else { completion(.failure(.noDataReturned)); return }
+                
+                completion(.success(modelContext))
+                
+                break
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
+    }
+    
+    func getUUIDsForRecognizedDevice(major: Int, minor: Int, completion: @escaping (Result<(String, String), IntegrationBrokerError>) -> ()) {
+        guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
+        
+        let urlStr = String(format: "https://%@%@", credentials.0, ICSEndpoints.arRecognitionDeviceMappings.rawValue)
+        
+        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2, timeoutInterval: 15) else {
+            completion(.failure(.requestCreationError))
+            return
+        }
+        
+        self.asyncHttpRequest(session: self.session, request: urlRequest) { result in
+            switch result {
+            case .success(let data):
+                guard let parsedResponse = self.jsonDataHandler(decodableType: ARRecognitionToDeviceMappingArrayResponse.self, data: data) else { completion(.failure(.noDataReturned)); return }
+                guard let mapping = parsedResponse.items?.first(where: { $0.major == major && $0.minor == minor }) else { completion(.failure(.noDataReturned)); return }
+                completion(.success((mapping.applicationId, mapping.deviceId)))
+                
+                break
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
+    }
+    
+    func getNodeData(nodeName: String, completion: @escaping (Result<ARNodeContext, IntegrationBrokerError>) -> ()) {
+        // This method serves data from a JSON file locally when ICS is used.  Try OCI F(n) for the actual implementation.
+        let messages = DataSimulator.performGet(object: ARNodeContextArrayResponse.self)
+        guard let assetNode = messages?.items?.first(where: { $0.name == nodeName }) else { completion(.failure(.noDataReturned)); return }
+        completion(.success(assetNode))
+    }
+    
+    func getDeviceInfo(_ deviceId: String, completion: @escaping (Result<IoTDevice, IntegrationBrokerError>) -> ()) {
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         
         let urlStr = String(format: "https://%@%@%@", credentials.0, ICSEndpoints.deviceData.rawValue, deviceId)
         
-        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
+        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2, timeoutInterval: 15) else {
             completion(.failure(.requestCreationError))
             return
         }
@@ -174,28 +202,12 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to get the IoT device messages.
-     
-     - Parameter deviceId: The device ID to retrieve messages for.
-     - Parameter completion: Callback method once the HTTP request completes.
-     - Parameter limit: A query limit applied to the number of devices retrieved.
-     */
-    func getHistoricalDeviceMessages(_ deviceId: String, completion: @escaping (Result<SensorMessageResponse, IntegrationBrokerError>) -> (), limit: Int = 1) {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            var messages = SensorMessageResponse()
-            messages.items = DataSimulator.createTemperatureProjectionModel(dataMin: 0, dataMax: 500, recordsToCreate: limit, createAnomalies: false)
-            completion(.success(messages))
-            return
-        }
-        
+    func getHistoricalDeviceMessages(_ applicationId: String, _ deviceId: String, completion: @escaping (Result<SensorMessageResponse, IntegrationBrokerError>) -> (), limit: Int = 1) {
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         
         let urlStr = String(format: "https://%@%@%@?limit=%d&sortBy=eventTime:desc", credentials.0, ICSEndpoints.deviceMessages.rawValue, deviceId, limit)
         
-        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
+        guard let urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2, timeoutInterval: 15) else {
             completion(.failure(.requestCreationError))
             return
         }
@@ -214,24 +226,13 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to trigger the filter clogged event or remove it.
-     
-     - Parameter applicationId: The IoTCS application ID that the device exists under.
-     - Parameter deviceId: The device ID to retrieve messages for.
-     - Parameter request: Request data to pass to ICSBroker.
-     - Parameter completion: Callback method once the HTTP request completes.
-     - Parameter result: The result of the HTTP request.
-     */
-    func triggerDeviceIssue(applicationId: String, deviceId: String, request: DeviceEventTriggerRequest, completion: @escaping (Result<Bool, IntegrationBrokerError>) -> ()) {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            // This method does nothing when simulator is on
-            completion(.success(true))
-            return
-        }
-        
+    func getDeviceArActionMapping(_ applicationId: String, _ deviceId: String, completion: @escaping (Result<ARDeviceActionMapping, IntegrationBrokerError>) -> ()) {
+        guard let messages = DataSimulator.performGet(object: ARDeviceActionMappingArrayResponse.self)?.items?.first(where: { $0.deviceId == deviceId && $0.applicationId == applicationId }) else { completion(.failure(.noDataReturned)); return }
+        completion(.success(messages))
+        return
+    }
+    
+    func triggerDeviceIssue(applicationId: String, deviceId: String, request: DeviceEventTriggerRequest, deviceModel: String = "urn:com:blue:pump:data", action: String = "resetFilter", completion: @escaping (Result<Bool, IntegrationBrokerError>) -> ()) {
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         
         let urlStr = String(format: "https://%@%@%@/%@", credentials.0, ICSEndpoints.deviceTriggerIssue.rawValue, applicationId, deviceId)
@@ -260,25 +261,7 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to get the IoT device's service request list from the configured service application.  This call only has limited information and inteded for list views.
-     
-     - Parameter deviceId: The device ID used for the service request.
-     - Parameter partId: The part ID used for the service request.
-     - Parameter completion: Callback method once the HTTP request completes.
-     */
     func getServiceRequestList(for deviceId: String, and partId: String, completion: @escaping (Result<ServiceRequestArrayResponse, IntegrationBrokerError>) -> ()) {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            let messages = DataSimulator.performGet(object: ServiceRequestArrayResponse.self)
-            let items = messages?.items?.filter({ $0.device?.partId == partId })
-            var srArrResponse = ServiceRequestArrayResponse()
-            srArrResponse.items = items
-            completion(.success(srArrResponse))
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
         
@@ -286,7 +269,7 @@ class ICSBroker: IntegrationBroker {
         let idLabel = app == .engagementCloud ? "SrNumber" : "id"
         let urlStr = String(format: "https://%@%@?deviceId=%@&partId=%@&orderBy=%@:desc", credentials.0, appPath.rawValue, deviceId, partId, idLabel)
         
-        guard var urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
+        guard var urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2, timeoutInterval: 15) else {
             completion(.failure(.requestCreationError))
             return
         }
@@ -304,22 +287,7 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to get a specific service request from the configured service application.
-     
-     - Parameter id: The ID of the service request to retrieve.
-     - Parameter completion: Callback method once the HTTP request completes.
-     */
     func getServiceRequest(_ id: String, completion: @escaping (Result<ServiceRequestResponse, IntegrationBrokerError>) -> ()) {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            let messages = DataSimulator.performGet(object: ServiceRequestArrayResponse.self)
-            guard let item = messages?.items?.first(where: { $0.id == id }) else { completion(.failure(.noDataReturned)); return }
-            completion(.success(item))
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
         
@@ -344,57 +312,26 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to create a service request for the IoT device for the configured service application.
-     
-     - Parameter request: The ServiceRequest request object.
-     - Parameter completion: Callback method once the HTTP request completes.
-     */
     func createServiceRequest(with request: ServiceRequestRequest, completion: @escaping (Result<ServiceRequestResponse, IntegrationBrokerError>) -> ()) {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            // In the case of a create, just get the simulated service request response since it will be the same format as the results of an actual creation.
-            guard let messages = DataSimulator.performGet(object: ServiceRequestResponse.self) else { completion(.failure(.noDataReturned)); return }
-            completion(.success(messages))
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
         
         let appPath: ICSEndpoints = app == .engagementCloud ? .ecCreateRequest : .scCreateRequest
         let urlStr = String(format: "https://%@%@", credentials.0, appPath.rawValue)
         
-        #if DEBUGNETWORK
-        os_log(urlStr)
-        #endif
-        
         guard var urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
             completion(.failure(.requestCreationError))
             return
         }
         
-        
         let jsonEncoder = JSONEncoder()
         guard let json = try? jsonEncoder.encode(request) else {
             #if DEBUG
-            os_log("Could not encode JSON request.")
+            os_log(.debug, "Could not encode JSON request.")
             #endif
             completion(.failure(.jsonParseError))
             return
         }
-        
-        
-        let jsonStr = String(data: json, encoding: .utf8)
-        
-        #if DEBUGNETWORK
-        // If there is an image, then do not show JSON as the Base64 string pollutes the output
-        if jsonStr != nil && request.image == nil {
-            os_log("JSON:")
-            os_log(jsonStr!)
-        }
-        #endif
         
         urlRequest.httpMethod = "POST"
         urlRequest.httpBody = json
@@ -411,23 +348,7 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to delete a service request.
-     
-     - Parameter modelNodeId: Model node ID to post the note to.
-     - Parameter noteId: The note ID.
-     - Parameter completion: Callback method once the HTTP request completes.
-     
-     - throws: ICSError.invalidServiceApp when Service Cloud is not used because only Service Cloud serves notes currently.
-     */
     func deleteServiceRequest(srId: String, completion: @escaping (Result<Bool, IntegrationBrokerError>) -> ()) throws {
-        // If the local data flag is set to true, then do not make external calls.  This results in some hard-coded logic in later methods when the answer attachments (PDFs) are used.
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            completion(.success(true))
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
         
@@ -435,10 +356,10 @@ class ICSBroker: IntegrationBroker {
         // Ensure that the current app is OSvC, otherwise stop.
         guard app == .serviceCloud else {
             #if DEBUG
-            os_log("Delete SR is not currently implemented in Engagement Cloud.")
+            os_log(.debug, "Delete SR is not currently implemented in Engagement Cloud.")
             #endif
             
-            throw ICSError.invalidServiceApp
+            throw IntegrationError.invalidServiceApp
         }
         
         guard let id = Int(srId) else { completion(.failure(.requestCreationError)); return }
@@ -463,30 +384,7 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to query for answers.
-     
-     - Parameter contentType: The Engagement Cloud answer content type used in the search filter
-     - Parameter titleSearch: An array of titles that can be matched in the KB search.
-     - Parameter limit: Record query limit
-     - Parameter offset: Record query offset
-     - Parameter completion: Callback method once the HTTP request completes.
-     
-     - throws: `ICSError.invalidServiceApp` if an incorrect service app setting is used.
-     */
     func getAnswers(contentType: String, titleSearch: [String], limit: Int, offset: Int, completion: @escaping (Result<AnswerArrayResponse, IntegrationBrokerError>) -> ()) throws {
-        // If the local data flag is set to true, then do not make external calls
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            guard var messages = DataSimulator.performGet(object: AnswerArrayResponse.self) else { completion(.failure(.noDataReturned)); return }
-            let searchStr = titleSearch[0].trimmingCharacters(in: CharacterSet(charactersIn: "*")).lowercased()
-            let filteredItems = messages.items?.filter({ ($0.xml?.contains(contentType.uppercased()) ?? false) && ($0.title?.lowercased().contains(searchStr) ?? false) })
-            messages.items = filteredItems
-            completion(.success(messages))
-            
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
         
@@ -512,25 +410,7 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to query for a specific answer.
-     
-     - Parameter id: The recordId of the answer to query for.
-     - Parameter completion: Callback method once the HTTP request completes.
-     
-     - throws: `ICSError.invalidServiceApp` if Service Cloud is used and a knowledge call is made.  Engagement Cloud is used for knowledge.
-     */
     func getAnswer(id: String, completion: @escaping (Result<AnswerResponse, IntegrationBrokerError>) -> ()) throws {
-        // If the local data flag is set to true, then do not make external calls.  This results in some hard-coded logic in later methods when the answer attachments (PDFs) are used.
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            let messages = DataSimulator.performGet(object: AnswerArrayResponse.self)
-            guard let item = messages?.items?.first(where: { $0.recordId == id }) else { completion(.failure(.noDataReturned)); return }
-            completion(.success(item))
-            
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
         
@@ -555,57 +435,7 @@ class ICSBroker: IntegrationBroker {
         }
     }
     
-    /**
-     Performs call to ICS to query for the AR metadata for the recognized image/object.
-     
-     - Parameter name: The name of the object that was recognized in the AR space.
-     - Parameter completion: Callback method once the HTTP request completes.
-     */
-    func getRecognitionData(name: String, completion: @escaping (Result<ARRecognitionContext, IntegrationBrokerError>) -> ()) {
-        //Procedure data is currently stored locally in this app.
-        //TODO: Move procedure definition to an application / API that can serve the request dynamically.
-        let messages = DataSimulator.performGet(object: ARRecognitionContextArrayResponse.self)
-        guard let context = messages?.items?.first(where: { $0.name == name }) else { completion(.failure(.noDataReturned)); return }
-        completion(.success(context))
-        return
-    }
-    
-    /**
-     Performs call to ICS to query for the AR metadata for the selected node.
-     
-     - Parameter nodeName: The node to retrieve procedure data for.
-     - Parameter completion: Callback method once the HTTP request completes.
-     */
-    func getNodeData(nodeName: String, completion: @escaping (Result<ARNodeContext, IntegrationBrokerError>) -> ()) {
-        //Procedure data is currently stored locally in this app.
-        //TODO: Move procedure definition to an application / API that can serve the request dynamically.
-        let messages = DataSimulator.performGet(object: ARNodeContextArrayResponse.self)
-        guard let assetNode = messages?.items?.first(where: { $0.name == nodeName }) else { completion(.failure(.noDataReturned)); return }
-        completion(.success(assetNode))
-        return
-    }
-    
-    /**
-     Performs call to ICS to query for the modelnode record details.  This is required to submit notes for a specific node in other API calls.
-     
-     - Parameter deviceId: Of the device in the AR experience.
-     - Parameter nodeName: The node to retrieve notes data for.
-     - Parameter completion: Callback method once the HTTP request completes.
-     
-     - throws: ICSError.invalidServiceApp when Service Cloud is not used because only Service Cloud serves notes currently.
-     */
     func getModelNodeDetails(deviceId: String, nodeName: String, completion: @escaping (Result<ARNodeDetailArrayResponse, IntegrationBrokerError>) -> ()) throws {
-        // If the local data flag is set to true, then do not make external calls.  This results in some hard-coded logic in later methods when the answer attachments (PDFs) are used.
-        let dataSimulator = UserDefaults.standard.bool(forKey: AppConfigs.dataSimulator.rawValue)
-        if dataSimulator {
-            let response = DataSimulator.performGet(object: ARNodeDetailArrayResponse.self)?.items?.filter({ $0.node == nodeName })
-            var newResponse = ARNodeDetailArrayResponse()
-            newResponse.items = response
-            completion(.success(newResponse))
-            
-            return
-        }
-        
         guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
         guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
         
@@ -613,10 +443,10 @@ class ICSBroker: IntegrationBroker {
         // Ensure that the current app is OSvC, otherwise stop.
         guard app == .serviceCloud else {
             #if DEBUG
-            os_log("Notes are not currently implemented in Engagement Cloud.")
+            os_log(.debug, "Notes are not currently implemented in Engagement Cloud.")
             #endif
             
-            throw ICSError.invalidServiceApp
+            throw IntegrationError.invalidServiceApp
         }
         
         let appPath: ICSEndpoints = .scGetDeviceNodeDetails
@@ -635,6 +465,122 @@ class ICSBroker: IntegrationBroker {
             case .success(let data):
                 guard let parsedResponse = self.jsonDataHandler(decodableType: ARNodeDetailArrayResponse.self, data: data) else { completion(.failure(.noDataReturned)); return }
                 completion(.success(parsedResponse))
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
+    }
+    
+    func getNotes(deviceId: String, nodeName: String, completion: @escaping (Result<NoteArrayResponse, IntegrationBrokerError>) -> ()) throws {
+        guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
+        guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
+        
+        //TODO: Add notes functionality to Engagement Cloud
+        // Ensure that the current app is OSvC, otherwise stop.
+        guard app == .serviceCloud else {
+            #if DEBUG
+            os_log(.debug, "Notes are not currently implemented in Engagement Cloud.")
+            #endif
+            
+            throw IntegrationError.invalidServiceApp
+        }
+        
+        let appPath: ICSEndpoints = .scGetDeviceNodeNotes
+        let formattedEndpoint = String(format: appPath.rawValue, deviceId, nodeName)
+        let urlStr = String(format: "https://%@%@", credentials.0, formattedEndpoint)
+        
+        guard var urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
+            completion(.failure(.requestCreationError))
+            return
+        }
+        
+        urlRequest.httpMethod = "GET"
+        
+        self.asyncHttpRequest(session: self.session, request: urlRequest) { result in
+            switch result {
+            case .success(let data):
+                guard let parsedResponse = self.jsonDataHandler(decodableType: NoteArrayResponse.self, data: data) else { completion(.failure(.noDataReturned)); return }
+                completion(.success(parsedResponse))
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
+    }
+    
+    func createNote(modelNodeId: Int, text: String, completion: @escaping (Result<Bool, IntegrationBrokerError>) -> ()) throws {
+        guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
+        guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
+        
+        //TODO: Add notes functionality to Engagement Cloud
+        // Ensure that the current app is OSvC, otherwise stop.
+        guard app == .serviceCloud else {
+            #if DEBUG
+            os_log(.debug, "Notes are not currently implemented in Engagement Cloud.")
+            #endif
+            
+            throw IntegrationError.invalidServiceApp
+        }
+        
+        let appPath: ICSEndpoints = .scCreateDeviceNodeNote
+        let formattedEndpoint = String(format: appPath.rawValue, modelNodeId)
+        let urlStr = String(format: "https://%@%@", credentials.0, formattedEndpoint)
+        
+        guard var urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
+            completion(.failure(.requestCreationError))
+            return
+        }
+        
+        let encoder = JSONEncoder()
+        let request = NoteRequest(text)
+        guard let requestBody = try? encoder.encode(request) else {
+            os_log(.error, "Could not encode request into JSON.")
+            completion(.failure(.jsonParseError))
+            return
+        }
+        
+        urlRequest.httpMethod = "PATCH"
+        urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.httpBody = requestBody
+        
+        self.asyncHttpRequest(session: self.session, request: urlRequest) { result in
+            switch result {
+            case .success(_):
+                completion(.success(true))
+            case .failure(let failure):
+                completion(.failure(failure))
+            }
+        }
+    }
+    
+    func deleteNote(modelNodeId: Int, noteId: Int, completion: @escaping (Result<Bool, IntegrationBrokerError>) -> ()) throws {
+        guard let credentials = try? self.getLocalICSCredentials() else { completion(.failure(.requestCreationError)); return }
+        guard let app = self.serverConfigs?.service?.application else { completion(.failure(.requestCreationError)); return }
+        
+        //TODO: Add notes functionality to Engagement Cloud
+        // Ensure that the current app is OSvC, otherwise stop.
+        guard app == .serviceCloud else {
+            #if DEBUG
+            os_log(.debug, "Notes are not currently implemented in Engagement Cloud.")
+            #endif
+            
+            throw IntegrationError.invalidServiceApp
+        }
+        
+        let appPath: ICSEndpoints = .scDeleteNote
+        let formattedEndpoint = String(format: appPath.rawValue, modelNodeId, noteId)
+        let urlStr = String(format: "https://%@%@", credentials.0, formattedEndpoint)
+        
+        guard var urlRequest = self.getRestRequestWithAuthHeader(endPoint: urlStr, username: credentials.1, password: credentials.2) else {
+            completion(.failure(.requestCreationError))
+            return
+        }
+        
+        urlRequest.httpMethod = "DELETE"
+        
+        self.asyncHttpRequest(session: self.session, request: urlRequest) { result in
+            switch result {
+            case .success(_):
+                completion(.success(true))
             case .failure(let failure):
                 completion(.failure(failure))
             }

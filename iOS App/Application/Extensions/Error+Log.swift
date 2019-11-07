@@ -16,6 +16,6 @@ import os
 
 extension Error {
     func log() {
-        os_log(.error, "%@", self.localizedDescription)
+        os_log(.error, "%@", String(format: "\(self)"))
     }
 }

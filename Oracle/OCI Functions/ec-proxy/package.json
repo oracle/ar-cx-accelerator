@@ -1,0 +1,15 @@
+{
+	"name": "ec_proxy",
+	"version": "1.0.0",
+	"description": "Proxies requests to Engagement Cloud.",
+	"main": "src/index.js",
+	"author": "Scott Harwell",
+	"license": "UPL-1.0",
+	"dependencies": {
+		"@fnproject/fdk": ">=0.0.15",
+		"https": "^1.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^12.7.5"
+	}
+}

@@ -13,7 +13,7 @@
 //  https://github.com/danielgindi/Charts
 //
 
-import Foundation
+import UIKit
 import Charts
 
 open class SensorBalloonMarker: MarkerImage
