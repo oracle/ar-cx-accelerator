@@ -34,6 +34,11 @@ class ServiceRequestSplitViewController: OverlaySplitViewController, UISplitView
     var serviceRequests: ServiceRequestArrayResponse?
     
     /**
+     The application ID that the IoT device belong to.
+     */
+    var applicationId: String?
+    
+    /**
      The IoT Device object used to populate the device ID.
      */
     var iotDevice: IoTDevice?
@@ -109,25 +114,25 @@ class ServiceRequestSplitViewController: OverlaySplitViewController, UISplitView
             return
         }
         
-        ICSBroker.shared.getServiceRequestList(for: deviceId, and: part.replacingOccurrences(of: " ", with: "_"), completion: { result in
-            #if DEBUG
-            os_log("Get Service Request List Completed")
-            #endif
-            
-            switch result {
-            case .success(let data):
-                self.serviceRequests = data
-                break
-            case .failure(_):
-                break
-            }
-            
-            guard let tableVc = self.masterNavViewController?.children.first as? ServiceRequestTableViewController else {
-                completion?()
-                return
-            }
-            
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getServiceRequestList(for: deviceId, and: part.replacingOccurrences(of: " ", with: "_"), completion: { result in
             DispatchQueue.main.async {
+                #if DEBUG
+                os_log(.debug, "Get Service Request List Completed")
+                #endif
+                
+                switch result {
+                case .success(let data):
+                    self.serviceRequests = data
+                    break
+                case .failure(_):
+                    break
+                }
+                
+                guard let tableVc = self.masterNavViewController?.children.first as? ServiceRequestTableViewController else {
+                    completion?()
+                    return
+                }
+                
                 tableVc.didQueryForSrs = true
                 tableVc.tableView.reloadData()
             }
@@ -176,9 +181,11 @@ class ServiceRequestSplitViewController: OverlaySplitViewController, UISplitView
         
         self.serviceRequests!.items?.remove(at: index)
         
-        try? ICSBroker.shared.deleteServiceRequest(srId: srId, completion: { result in
-            completion?()
-        })
+        DispatchQueue.global(qos: .background).async {
+            try? (UIApplication.shared.delegate as! AppDelegate).integrationBroker.deleteServiceRequest(srId: srId, completion: { result in
+                completion?()
+            })
+        }
     }
     
     func serviceRequestSelected(at index: Int) {

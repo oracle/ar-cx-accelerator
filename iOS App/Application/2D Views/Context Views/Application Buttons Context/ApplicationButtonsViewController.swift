@@ -38,12 +38,6 @@ protocol ApplicationButtonsViewControllerDelegate: class {
 
 class ApplicationButtonsViewController: UIViewController, ContextViewController {
     
-    // MARK: - IBOutlets
-    
-    @IBOutlet weak var resetButton: UIButton!
-    @IBOutlet weak var helpButton: UIButton!
-    @IBOutlet weak var shareButton: UIButton!
-    
     // MARK: - Properties
     
     /**
@@ -54,7 +48,7 @@ class ApplicationButtonsViewController: UIViewController, ContextViewController 
     /**
      The width for this view as it will be overlayed on the AR view.
     */
-    let viewHeight: CGFloat = 264
+    let viewHeight: CGFloat = 198
     
     /**
      The height for this view as it will be overlayed on the AR view.
@@ -66,18 +60,90 @@ class ApplicationButtonsViewController: UIViewController, ContextViewController 
      */
     let viewInset: CGFloat = 10
     
+    // MARK: - UIViewController Methods
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        do {
+            let resetButton: UIButton = try UIButton.roundRectButton(icon: FontAwesomeSolid.redo, label: "Reset", backgroundColor: #colorLiteral(red: 0.8196256757, green: 0.2078545988, blue: 0.05893449485, alpha: 1))
+            let helpButton: UIButton = try UIButton.roundRectButton(icon: FontAwesomeSolid.question, label: "Help", backgroundColor: #colorLiteral(red: 0.4587318897, green: 0.6117965579, blue: 0.4234741926, alpha: 1))
+            let shareButton: UIButton = try UIButton.roundRectButton(icon: FontAwesomeSolid.share, label: "Share", backgroundColor: #colorLiteral(red: 0.3372283578, green: 0.3137445748, blue: 0.2940791547, alpha: 1))
+            
+            resetButton.addTarget(self, action: #selector(self.resetButtonHandler(_:)), for: .touchUpInside)
+            resetButton.restorationIdentifier = "ResetButton"
+            resetButton.layer.masksToBounds = false
+            resetButton.layer.shadowColor = UIColor.black.cgColor
+            resetButton.layer.shadowOpacity = 0.3
+            resetButton.layer.shadowOffset = CGSize(width: 3, height: 3)
+            resetButton.layer.shadowRadius = 1
+            resetButton.translatesAutoresizingMaskIntoConstraints = false
+            
+            self.view.addSubview(resetButton)
+            
+            NSLayoutConstraint.activate([
+                resetButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                resetButton.widthAnchor.constraint(equalToConstant: 60),
+                resetButton.heightAnchor.constraint(equalToConstant: 60)
+            ])
+            
+            helpButton.addTarget(self, action: #selector(self.helpButtonHandler(_:)), for: .touchUpInside)
+            helpButton.restorationIdentifier = "HelpButton"
+            helpButton.layer.masksToBounds = false
+            helpButton.layer.shadowColor = UIColor.black.cgColor
+            helpButton.layer.shadowOpacity = 0.3
+            helpButton.layer.shadowOffset = CGSize(width: 3, height: 3)
+            helpButton.layer.shadowRadius = 1
+            helpButton.frame = CGRect(x: 0, y: 68, width: 60, height: 60)
+            helpButton.translatesAutoresizingMaskIntoConstraints = false
+            
+            self.view.addSubview(helpButton)
+            
+            NSLayoutConstraint.activate([
+                helpButton.topAnchor.constraint(equalTo: resetButton.bottomAnchor, constant: 8),
+                helpButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                helpButton.widthAnchor.constraint(equalToConstant: 60),
+                helpButton.heightAnchor.constraint(equalToConstant: 60)
+            ])
+            
+            shareButton.addTarget(self, action: #selector(self.shareButtonHandler(_:)), for: .touchUpInside)
+            shareButton.restorationIdentifier = "ShareButton"
+            shareButton.layer.masksToBounds = false
+            shareButton.layer.shadowColor = UIColor.black.cgColor
+            shareButton.layer.shadowOpacity = 0.3
+            shareButton.layer.shadowOffset = CGSize(width: 3, height: 3)
+            shareButton.layer.shadowRadius = 1
+            shareButton.frame = CGRect(x: 0, y: 204, width: 60, height: 60)
+            shareButton.translatesAutoresizingMaskIntoConstraints = false
+            
+            self.view.addSubview(shareButton)
+            
+            NSLayoutConstraint.activate([
+                shareButton.topAnchor.constraint(equalTo: shareButton.topAnchor, constant: 8),
+                shareButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                shareButton.widthAnchor.constraint(equalToConstant: 60),
+                shareButton.heightAnchor.constraint(equalToConstant: 60)
+            ])
+        } catch {
+            error.log()
+        }
+    }
+    
     // MARK: - IBActions
     
     @IBAction func resetButtonHandler(_ sender: UIButton) {
         sender.isEnabled = false
+        sender.logClick()
         delegate?.resetButtonPressed(self)
     }
     
     @IBAction func helpButtonHandler(_ sender: UIButton) {
+        sender.logClick()
         delegate?.helpButtonPressed(self)
     }
     
     @IBAction func shareButtonHandler(_ sender: UIButton) {
+        sender.logClick()
         delegate?.shareButtonPressed(self)
     }
     

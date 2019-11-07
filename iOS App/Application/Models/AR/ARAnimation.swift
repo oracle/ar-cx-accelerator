@@ -40,20 +40,20 @@ struct ARAnimation: Decodable {
     /**
      An array of SpriteKit attributes for the nodes in the animation.  These are typically arrow and/or motion graphics to depict how to interact with the node in question.
     */
-    var attributions: [Attribution]?
+    var attributes: [Attribute]?
     
     /**
      Struct that represents an attribute for a node in an animation.
     */
-    struct Attribution: Decodable {
+    struct Attribute: Decodable {
         
         /**
-         An identifier for the attribution that can be used to identify its node in the scene's node tree.
+         An identifier for the attribute that can be used to identify its node in the scene's node tree.
          */
         var name: String
         
         /**
-         The image to present as the attribution to the 3D node.
+         The image to present as the attribute to the 3D node.
          */
         var image: ContextImage?
         
@@ -63,9 +63,9 @@ struct ARAnimation: Decodable {
         var sceneFrame: ARRect?
         
         /**
-         Flag to indicate whether to remove the attribution after an animation has played.
+         Flag to indicate whether to remove the attribute after an animation has played.
          */
-        var removeAttributionsAfterAnimation: Bool? = true
+        var removeAttributesAfterAnimation: Bool? = true
         
         /**
          Angles to position which way the node faces.

@@ -11,7 +11,7 @@
 // *********************************************************************************************
 // 
 
-import Foundation
+import UIKit
 
 protocol AppServerConfigsDelegate: class {
     /**
@@ -66,14 +66,16 @@ class AppServerConfigs {
         
         self.gettingServerConfigs = true
         
-        ICSBroker.shared.getServerConfigs { result in
-            switch result {
-            case .success(let configs):
-                self.gettingServerConfigs = false
-                self.serverConfigs = configs
-                self.delegate?.serverConfigsRetrieved(true)
-            default:
-                self.delegate?.serverConfigsRetrieved(false)
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getServerConfigs { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let configs):
+                    self.gettingServerConfigs = false
+                    self.serverConfigs = configs
+                    self.delegate?.serverConfigsRetrieved(true)
+                default:
+                    self.delegate?.serverConfigsRetrieved(false)
+                }
             }
         }
     }

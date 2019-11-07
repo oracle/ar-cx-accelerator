@@ -25,7 +25,11 @@ class ActivityOverlayViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        if #available(iOS 13.0, *) {
+            self.activityIndicator.style = .medium
+        } else {
+            self.activityIndicator.style = traitCollection.userInterfaceStyle == .light ? .gray : .white
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -41,6 +45,7 @@ class ActivityOverlayViewController: UIViewController {
      - Parameter text: The string to update the label to.
     */
     func setLabel(_ text: String) {
+        guard self.activityLabel != nil else { return }
         self.activityLabel.text = text
     }
 }

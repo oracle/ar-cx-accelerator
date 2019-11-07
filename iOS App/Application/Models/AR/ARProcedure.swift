@@ -13,6 +13,7 @@
 
 import UIKit
 import ARKit
+import os
 
 /**
  Struct to represent declared procedures that can be pulled via API calls and then applied to nodes or sub-nodes in the AR 3D model(s).
@@ -90,9 +91,10 @@ struct ARProcedure: Decodable {
         var highlightNode: String?
         
         /**
-         An array of animations to play when this step appears.  Animations play in sequential order.
+         An array of of arrays animations to play when this step appears.
+         The parent array contains a list of arrays.  Each child array has a set of animations that play simultaenously
          */
-        var animations: [ARAnimation]?
+        var animations: [[ARAnimation]]?
         
         /**
          An image to display during this procedure step.
@@ -104,10 +106,16 @@ struct ARProcedure: Decodable {
          */
         var confirmationMessage: String?
         
+        /// An object that defines a timer overlay for a given step.
+        var timer: StepTimer?
+        
         /**
          A dictionary that can be used to track the original position of nodes at this step so that they may be returned once the step is completed.
          */
         var nodeOriginalPositions: [String: SCNVector3]?
+        
+        /// A dictionary that can be used to track the original opacity of nodes at this step so that they may be returned to the original value when the step is completed.
+        var nodeOriginalOpacity: [String: CGFloat]?
         
         /**
          Coding keys for JSON deconstruction.
@@ -119,7 +127,55 @@ struct ARProcedure: Decodable {
             details,
             animations,
             image,
-            confirmationMessage
+            confirmationMessage,
+            timer
+        }
+        
+        public init(from decoder: Decoder) throws {
+            do {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                title = try container.decode(String.self, forKey: .title)
+                text = try container.decode(String.self, forKey: .text)
+                details = try? container.decode(String.self, forKey: .details)
+                highlightNode = try? container.decode(String.self, forKey: .highlightNode)
+                image = try? container.decode(ContextImage.self, forKey: .image)
+                confirmationMessage = try? container.decode(String.self, forKey: .confirmationMessage)
+                timer = try? container.decode(StepTimer.self, forKey: .timer)
+                
+                // At one point, this app only allowed for a single animation at a time.
+                // To add multiple simultaneous animations, we now have an array of arrays.
+                // This decode logic should convert legacy step definitions into the array of arrays that the application expects now.
+                var animations: [[ARAnimation]]? = nil
+                
+                // Try to decode an array of arrays first.
+                do {
+                    animations = try container.decode([[ARAnimation]].self, forKey: .animations)
+                } catch {
+                    do {
+                        let animation = try container.decode([ARAnimation].self, forKey: .animations)
+                        animations = [animation]
+                    } catch {
+                        os_log(.error, "Animations for set '%@' could not be decoded as an array or array of arrays!", self.title)
+                    }
+                }
+                
+                self.animations = animations
+            } catch {
+                error.log()
+                throw error
+            }
+        }
+        
+        // Sub Structs
+        
+        /// A struct that represents a timer defined in a procedure.
+        struct StepTimer: Decodable {
+            
+            /// The duration of the timer in seconds.
+            var duration: Int
+            
+            /// A message that should display in the UI during the timer.
+            var text: String?
         }
     }
 }

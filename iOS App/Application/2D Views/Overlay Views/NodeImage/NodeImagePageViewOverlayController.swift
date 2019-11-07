@@ -112,7 +112,7 @@ class NodeImagePageViewOverlayController: OverlayPageViewController, UIPageViewC
     */
     @objc private func closePageView(_ sender: UIButton) {
         #if DEBUG
-        os_log("Close Button Tapped")
+        os_log(.debug, "Close Button Tapped")
         #endif
         
         self.dismiss(animated: true, completion: nil)

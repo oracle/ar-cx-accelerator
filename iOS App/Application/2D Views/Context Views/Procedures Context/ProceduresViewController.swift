@@ -87,7 +87,8 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
     @IBOutlet weak var nextButton: UIButton!
     @IBOutlet weak var closeButton: UIButton!
     @IBOutlet weak var imageView: UIImageView!
-    @IBOutlet var panRecognizer: UIPanGestureRecognizer!
+    @IBOutlet weak var timerLabel: UILabel!
+    @IBOutlet weak var panRecognizer: UIPanGestureRecognizer!
     
     //MARK: - Properties
     
@@ -118,6 +119,12 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
         return self.procedure?.steps?[self.currentIndex]
     }()
     
+    /// A timer for the current step.
+    var currentStepTimer: Timer?
+    
+    /// The seconds remaining before the currentStepTimer is completed.
+    var secondsRemaining: Int?
+    
     //MARK: - UIViewController Methods
     
     override func viewDidLoad() {
@@ -125,7 +132,9 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        super .viewWillAppear(animated)
+        super.viewWillAppear(animated)
+        
+        self.timerLabel.text = nil
         
         self.moveFrameOutOfView()
         
@@ -144,10 +153,16 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
         self.resizeForContent()
         
         self.delegate?.procedureStart(self, completion: nil)
+        
+        self.logViewAppeared()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        
+        self.currentStepTimer?.invalidate()
+        
+        self.logViewDisappeared()
     }
     
     // MARK: - UIGestureRecognizerDelegate Methods
@@ -161,7 +176,7 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
         guard let delegate = UIApplication.shared.delegate as? AppDelegate, let rootView = delegate.window?.rootViewController?.view else { return }
         
         #if DEBUG
-        os_log("Velocity: %@", sender.velocity(in: rootView).debugDescription)
+        os_log(.debug, "Velocity: %@", sender.velocity(in: rootView).debugDescription)
         #endif
         
         let x = self.view.frame.origin.x
@@ -185,6 +200,8 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
 
     @IBAction func nextButtonHandler(_ sender: UIButton) {
         sender.isEnabled = false
+        
+        sender.logClick()
         
         let currentIndex = self.currentIndex
         let newIndex = self.currentIndex + 1
@@ -229,9 +246,14 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
             
             guard let currentStep = self.procedure?.steps?[self.currentIndex] else { return }
             
-            if let confirmationMessage = currentStep.confirmationMessage {
+            if let secondsRemaining = self.secondsRemaining {
+                let message = String(format: "There are %d seconds remaining on this step. Are you sure that you want to proceed?", secondsRemaining)
+                displayConfirmation(message, proceedToNextStep)
+            }
+            else if let confirmationMessage = currentStep.confirmationMessage {
                 displayConfirmation(confirmationMessage, proceedToNextStep)
-            } else {
+            }
+            else {
                 proceedToNextStep(nil)
             }
         }
@@ -254,6 +276,8 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
     
     @IBAction func closeButton(_ sender: UIButton) {
         sender.isEnabled = false
+        
+        sender.logClick()
         
         self.removeView(completion: nil)
     }
@@ -327,6 +351,20 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
      - Parameter completion: Callback method called after the animation has completed.
      */
     private func updateUIForCurrentStep(completion: (() -> ())?) {
+        let disableButtons: () -> () = {
+            DispatchQueue.main.async {
+                self.nextButton.isEnabled = false
+                self.closeButton.isEnabled = false
+            }
+        }
+        
+        let enableButtons: () -> () = {
+            DispatchQueue.main.async {
+                self.nextButton.isEnabled = true
+                self.closeButton.isEnabled = true
+            }
+        }
+        
         DispatchQueue.main.async {
             guard let steps = self.procedure?.steps, self.stepTitleLabel != nil, self.stepContentTextArea != nil else {
                 completion?()
@@ -340,17 +378,57 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
             self.stepContentTextArea.setContentOffset(.zero, animated: true)
             self.imageView.image = step.image?.getImage()
             
-            if steps[self.currentIndex].animations != nil {
-                self.nextButton.isEnabled = false
-                self.closeButton.isEnabled = false
+            // Configure Step Timer
+            let resetTimer: () -> () = {
+                self.currentStepTimer?.invalidate()
+                self.timerLabel.text = nil
+                self.secondsRemaining = nil
+            }
+            
+            resetTimer()
+            
+            if let stepTimer = step.timer {
+                self.secondsRemaining = stepTimer.duration
+                self.timerLabel.text = String(self.secondsRemaining!)
                 
-                self.delegate?.playAnimations(self, animations: steps[self.currentIndex].animations!) {
-                    completion?()
-                    
-                    DispatchQueue.main.async {
-                        self.nextButton.isEnabled = true
-                        self.closeButton.isEnabled = true
+                self.currentStepTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { (timer) in
+                    if self.secondsRemaining! > 0 {
+                        self.timerLabel.text = String(self.secondsRemaining!)
+                        self.secondsRemaining! = self.secondsRemaining! - 1
+                    } else {
+                        resetTimer()
                     }
+                }
+                
+                self.currentStepTimer?.fire()
+            }
+            
+            // Configure Step Animations
+            if steps[self.currentIndex].animations != nil {
+                disableButtons()
+                
+                // Get all of the animations that should play sequentially at this step
+                guard let animationsArr = steps[self.currentIndex].animations, animationsArr.count > 0 else {
+                    enableButtons()
+                    completion?()
+                    return
+                }
+                
+                var completedCount = 0
+                
+                let animationCompletion: () -> () = {
+                    guard completedCount == animationsArr.count else { return }
+                    
+                    enableButtons()
+                    completion?()
+                }
+                
+                // Play all animations.
+                for animations in animationsArr {
+                    self.delegate?.playAnimations(self, animations: animations, completion: {
+                        completedCount = completedCount + 1
+                        animationCompletion()
+                    })
                 }
             }
         }
@@ -370,12 +448,15 @@ class ProceduresViewController: UIViewController, ContextViewController, UIGestu
         self.updateUIForCurrentStep(completion: nil)
     }
     
-    /**
-     Sets the original positions dictionary for the current step.
-     
-     - Parameter dict: Dictionary that defines the position of 3D nodes for the current procedure step.
-    */
-    func setNodePositionsForCurrentStep(_ dict:[String : SCNVector3]) {
+    /// Sets the original positions dictionary for the current step.
+    /// - Parameter dict: Dictionary that defines the position of 3D nodes for the current procedure step.
+    func setNodePositionsForCurrentStep(_ dict: [String : SCNVector3]) {
         self.procedure?.steps?[self.currentIndex].nodeOriginalPositions = dict
+    }
+    
+    /// Sets the original alpha of the nodes in the current step.
+    /// - Parameter dict: A dictionary of node names and alpha values.
+    func setNodeAplhasForCurrentStep(_ dict: [String : CGFloat]) {
+        self.procedure?.steps?[self.currentIndex].nodeOriginalOpacity = dict
     }
 }

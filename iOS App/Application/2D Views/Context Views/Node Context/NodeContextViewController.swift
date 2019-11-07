@@ -25,6 +25,31 @@ protocol NodeContextDelegate: class {
     func listServiceRequestsHandler(_ sender: NodeContextViewController?, completion: (() -> ())?)
     
     /**
+     Informs the delegate class that the list notes button was pressed.
+     
+     - Parameter sender: The controller sending the request to the delegate.
+     - Parameter nodeName: The name of the seleceted node on the 3D model.
+     - Parameter completion: Callback method called after the action taken by the delegate is completed.
+     */
+    func listNotesHandler(_ sender: NodeContextViewController?, nodeName: String, completion: (() -> ())?)
+    
+    /**
+     Informs the delegate class that the print button was pressed.
+     
+     - Parameter sender: The controller sending the request to the delegate.
+     - Parameter completion: Callback method called after the action taken by the delegate is completed.
+     */
+    func printItemHandler(_ sender: NodeContextViewController?, completion: (() -> ())?)
+    
+    /**
+     Informs the delegate class that the order item button was pressed.
+     
+     - Parameter sender: The controller sending the request to the delegate.
+     - Parameter completion: Callback method called after the action taken by the delegate is completed.
+     */
+    func orderItemHandler(_ sender: NodeContextViewController?, completion: (() -> ())?)
+    
+    /**
      Informs the delegate class that the show PDF action was pressed.
      
      - Parameter sender: The controller sending the request to the delegate.
@@ -96,8 +121,10 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
      Enum to identify the action buttons available in the view.
      */
     enum actionButtons: String, CaseIterable {
-        case createSr = "createSrButton",
-        srHistory = "srHistoryButton",
+        case srHistory = "srHistoryButton",
+        listNotes = "listNotesButton",
+        threeDPrint = "threeDPrintButton",
+        order = "orderButton",
         sensors = "sensorsButton"
     }
     
@@ -117,6 +144,10 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
      The minimum width that the view can be resized to by dragging
      */
     private var minWidth: CGFloat = 222
+    /**
+     The deviceId of the selected node.
+     */
+    private var applicationId: String?
     
     /**
      The deviceId of the selected node.
@@ -138,14 +169,53 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
      */
     private var chartData: LineChartData?
     
+    /// The number of entries to show in the sensor chart.
+    var chartEntriesToShow = 25
+    
     /**
      Programmatic creation of the srHistory button.
      */
-    lazy var srHistoryButton: UIButton = {
-        let button = UIButton(frame: CGRect(x: 2, y: 3, width: 60, height: 60))
-        button.setImage(UIImage(named: "ServiceRequestsImage"), for: .normal)
-        button.addTarget(self, action: #selector(self.listServiceRequestHandler(_:)), for: .touchUpInside)
-        button.restorationIdentifier = NodeContextViewController.actionButtons.srHistory.rawValue
+    lazy var srHistoryButton: UIButton? = {
+        let buttonColor = #colorLiteral(red: 0.1685094237, green: 0.384334594, blue: 0.258785367, alpha: 1)
+        let button = try? UIButton.roundRectButton(icon: FontAwesomeSolid.handsHelping, label: "Svc Requests", backgroundColor: buttonColor, textColor: UIColor.white, fontSize: 9, frame: CGRect(x: 2, y: 2, width: 58, height: 58))
+        button?.addTarget(self, action: #selector(self.listServiceRequestHandler(_:)), for: .touchUpInside)
+        button?.restorationIdentifier = NodeContextViewController.actionButtons.srHistory.rawValue
+        
+        return button
+    }()
+    
+    /**
+     Programmatic creation of the srHistory button.
+     */
+    lazy var noteHistoryButton: UIButton? = {
+        let buttonColor = #colorLiteral(red: 0.1724567413, green: 0.3490424454, blue: 0.4038673043, alpha: 1)
+        let button = try? UIButton.roundRectButton(icon: FontAwesomeSolid.newspaper, label: "Notes", backgroundColor: buttonColor, textColor: UIColor.white, frame: CGRect(x: 2, y: 2, width: 58, height: 58))
+        button?.addTarget(self, action: #selector(self.listNotesHandler(_:)), for: .touchUpInside)
+        button?.restorationIdentifier = NodeContextViewController.actionButtons.listNotes.rawValue
+        
+        return button
+    }()
+    
+    /**
+     Programmatic creation of the threeDPrint button.
+     */
+    lazy var threeDPrintButton: UIButton? = {
+        let buttonColor = #colorLiteral(red: 0.5450543761, green: 0.5215986967, blue: 0.5018989444, alpha: 1)
+        let button = try? UIButton.roundRectButton(icon: FontAwesomeSolid.print, label: "3D Print", backgroundColor: buttonColor, textColor: UIColor.white, frame: CGRect(x: 2, y: 2, width: 58, height: 58))
+        button?.addTarget(self, action: #selector(self.printItemHandler(_:)), for: .touchUpInside)
+        button?.restorationIdentifier = NodeContextViewController.actionButtons.threeDPrint.rawValue
+        
+        return button
+    }()
+    
+    /**
+     Programmatic creation of the order button.
+     */
+    lazy var orderButton: UIButton? = {
+        let buttonColor = #colorLiteral(red: 0.3372283578, green: 0.3137445748, blue: 0.2940791547, alpha: 1)
+        let button = try? UIButton.roundRectButton(icon: FontAwesomeSolid.receipt, label: "Order", backgroundColor: buttonColor, textColor: UIColor.white, frame: CGRect(x: 2, y: 2, width: 58, height: 58))
+        button?.addTarget(self, action: #selector(self.orderItemHandler(_:)), for: .touchUpInside)
+        button?.restorationIdentifier = NodeContextViewController.actionButtons.order.rawValue
         
         return button
     }()
@@ -153,11 +223,11 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
     /**
      Programmatic creation of the sensors button.
      */
-    lazy var sensorsButton: UIButton = {
-        let button = UIButton(frame: CGRect(x: 2, y: 3, width: 60, height: 60))
-        button.setImage(UIImage(named: "SensorsImage"), for: .normal)
-        button.addTarget(self, action: #selector(self.showSensorsHandler(_:)), for: .touchUpInside)
-        button.restorationIdentifier = NodeContextViewController.actionButtons.sensors.rawValue
+    lazy var sensorsButton: UIButton? = {
+        let buttonColor = #colorLiteral(red: 0.6823546886, green: 0.3372728527, blue: 0.1725513339, alpha: 1)
+        let button = try? UIButton.roundRectButton(icon: FontAwesomeSolid.tachometerAlt, label: "Sensors", backgroundColor: buttonColor, textColor: UIColor.white, frame: CGRect(x: 2, y: 2, width: 58, height: 58))
+        button?.addTarget(self, action: #selector(self.showSensorsHandler(_:)), for: .touchUpInside)
+        button?.restorationIdentifier = NodeContextViewController.actionButtons.sensors.rawValue
         
         return button
     }()
@@ -205,6 +275,8 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
     @IBAction func showSensorsHandler(_ sender: UIButton) {
         sender.isEnabled = false
         
+        sender.logClick()
+        
         delegate?.showSensorsHandler(self) {
             DispatchQueue.main.async {
                 sender.isEnabled = true
@@ -215,7 +287,47 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
     @IBAction func listServiceRequestHandler(_ sender: UIButton) {
         sender.isEnabled = false
         
+        sender.logClick()
+        
         delegate?.listServiceRequestsHandler(self) {
+            DispatchQueue.main.async {
+                sender.isEnabled = true
+            }
+        }
+    }
+    
+    @IBAction func listNotesHandler(_ sender: UIButton) {
+        guard let nodeName = self.nodeName else { return }
+        
+        sender.logClick()
+        
+        sender.isEnabled = false
+        
+        delegate?.listNotesHandler(self, nodeName: nodeName) {
+            DispatchQueue.main.async {
+                sender.isEnabled = true
+            }
+        }
+    }
+    
+    @IBAction func printItemHandler(_ sender: UIButton) {
+        sender.isEnabled = false
+        
+        sender.logClick()
+        
+        delegate?.printItemHandler(self) {
+            DispatchQueue.main.async {
+                sender.isEnabled = true
+            }
+        }
+    }
+    
+    @IBAction func orderItemHandler(_ sender: UIButton) {
+        sender.isEnabled = false
+        
+        sender.logClick()
+        
+        delegate?.orderItemHandler(self) {
             DispatchQueue.main.async {
                 sender.isEnabled = true
             }
@@ -267,7 +379,7 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
                     UIView.animate(withDuration: 0.25, animations: {
                         self.view.frame.origin = hidePoint
                     }) { (done) in
-                        os_log("Moved")
+                        os_log(.debug, "Moved")
                     }
                 } else {
                     self.resizeForContent()
@@ -318,7 +430,9 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         cell.hideButton.tag = section
         
         if self.hiddenSections.contains(section) {
-            cell.hideButton.setTitle("Show", for: .normal)
+            if let icon = FontAwesomeSolid.plusSquare.rawValue.toUnicodeCharacter {
+                cell.hideButton.setTitle("\(icon)", for: .normal)
+            }
         }
         
         switch section {
@@ -360,8 +474,6 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
             height = self.manuals != nil && self.manuals!.count > 0 ? height : 0
         case tableSections.procedures.rawValue:
             height = arNodeContext != nil && arNodeContext!.procedures != nil && arNodeContext!.procedures!.count > 0 ? height : 0
-        //case tableSections.notes.rawValue:
-        //    height = arNodeContext != nil && arNodeContext!.notes != nil && arNodeContext!.notes!.count > 0 ? height : 0
         default:
             break
         }
@@ -484,7 +596,7 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
     
     func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
         #if DEBUG
-        os_log("Will select row at path: %@", indexPath.debugDescription)
+        os_log(.debug, "Will select row at path: %@", indexPath.debugDescription)
         #endif
         
         return indexPath
@@ -492,12 +604,14 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         #if DEBUG
-        os_log("Did select row at: %@", indexPath.debugDescription)
+        os_log(.debug, "Did select row at: %@", indexPath.debugDescription)
         #endif
         
         switch indexPath.section {
         case tableSections.bulletins.rawValue:
             guard let article = self.bulletins?[indexPath.row] else { return }
+            
+            AppEventRecorder.shared.record(name: "Open Bulletin Pressed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: article.title, arAnchor: nil, arNode: self.nodeName, jsonString: nil, completion: nil)
             
             self.delegate?.showPdfHandler(self, answer: article, completion: nil)
             
@@ -505,11 +619,15 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         case tableSections.manuals.rawValue:
             guard let article = self.manuals?[indexPath.row] else { return }
             
+            AppEventRecorder.shared.record(name: "Open Manual Pressed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: article.title, arAnchor: nil, arNode: self.nodeName, jsonString: nil, completion: nil)
+            
             self.delegate?.showPdfHandler(self, answer: article, completion: nil)
             
             break
         case tableSections.procedures.rawValue:
             guard let procedure = self.arNodeContext?.procedures?[indexPath.row] else { return }
+            
+            AppEventRecorder.shared.record(name: "Open Procedure Pressed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: procedure.name, arAnchor: nil, arNode: self.nodeName, jsonString: nil, completion: nil)
             
             self.delegate?.proceduresHandler(self, procedure: procedure, completion: nil)
             
@@ -518,6 +636,8 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
             guard let nodeSection = self.nodeContextSection(from: indexPath.section) else { return }
             guard let rows = nodeSection.rows else { return }
             guard let action = rows[indexPath.row].action else { return }
+            
+            AppEventRecorder.shared.record(name: "Open Custom Context Action Pressed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: action.url, arAnchor: nil, arNode: self.nodeName, jsonString: nil, completion: nil)
             
             self.delegate?.nodeContextActionHandler(self, action: action, completion: nil)
             
@@ -591,8 +711,11 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         guard let parentView = self.parent?.view else { return }
         
         UIView.animate(withDuration: duration, animations: {
+            self.tableView.layoutIfNeeded()
+            
             let eightyPercentOfHeight = (parentView.frame.size.height * 0.8)
-            let viewHeight = self.tableView != nil && self.tableView.contentSize.height < eightyPercentOfHeight ? self.tableView.contentSize.height : eightyPercentOfHeight
+            let contentHeight = self.tableView.contentSize.height
+            let viewHeight = contentHeight < eightyPercentOfHeight ? contentHeight : eightyPercentOfHeight
             
             self.view.frame.size = CGSize(width: self.view.frame.size.width, height: viewHeight + 10)
             
@@ -632,14 +755,16 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
      
      - Parameter name: The name of the SCNNode/Part that was selected.
      - Parameter device: The ID of the device that was selected.
+     - Parameter appId: The application ID of the device that was selected.
      */
-    func setNode(name: String, for device: String){
+    func setNode(name: String, device: String, appId: String){
         // Ensure that there is actually a name change
         guard name != self.nodeName else { return }
         
         // Set the node name on this class.
         self.nodeName = name
         self.deviceId = device
+        self.applicationId = appId
         
         // Remove existing actions or kb results when setting part name as they should be reset with the new part for context
         self.arNodeContext = nil
@@ -650,7 +775,9 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         
         let reloadTable: () -> () = {
             DispatchQueue.main.async {
+                guard !self.tableView.hasUncommittedUpdates else { return }
                 self.tableView.reloadData()
+                self.tableView.endUpdates()
                 self.resizeForContent()
             }
         }
@@ -665,7 +792,7 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         let knowledgeRequestHandler: () -> () = {
             guard name == self.nodeName else {
                 #if DEBUG
-                os_log("Node name does not match name assigned to class. Will not proceed with knowledge.")
+                os_log(.debug, "Node name does not match name assigned to class. Will not proceed with knowledge.")
                 #endif
                 
                 return
@@ -680,9 +807,9 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         }
         
         // Get bulletins for item selected
-        self.getKnowledgeArticles(contentType: "TECH BULLETINS", titleSearches: [answerSearch]) { (answers) in
+        self.getKnowledgeArticles(contentType: "TECH_BULLETINS", titleSearches: [answerSearch]) { (answers) in
             #if DEBUG
-            os_log("Bulletins request finished")
+            os_log(.debug, "Bulletins request finished")
             #endif
             
             bulletinsRetrieved = true
@@ -697,7 +824,7 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         // Get manuals for item selected
         self.getKnowledgeArticles(contentType: "MANUALS", titleSearches: [answerSearch]) { (answers) in
             #if DEBUG
-            os_log("Manuals request finished")
+            os_log(.debug, "Manuals request finished")
             #endif
             
             manualsRetrieved = true
@@ -718,16 +845,19 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
             
             // Reload immediately once node data is accessed.
             reloadTable()
+            
+            // Get nodes for this node
+            DispatchQueue.main.async {
+                self.getNotesForNode(nodeContext, completion: { (notes) in
+                    guard let notes = notes, nodeContext.name == self.arNodeContext?.name else { return }
+                    
+                    self.arNodeContext?.setNotes(notes)
+                    
+                    // Reload the table again with the notes
+                    reloadTable()
+                })
+            }
         }
-    }
-    
-    /**
-     Sets action buttons that are applicable to all nodes in the AR experience.
-     */
-    private func setDefaultActionButtons() {
-        self.actionButtons = []
-        
-        self.actionButtons.append(self.srHistoryButton)
     }
     
     /**
@@ -781,11 +911,11 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         guard let nodeName = self.nodeName else { completion(nil); return }
         
         #if DEBUG
-        os_log("Searching KB for %@", nodeName)
+        os_log(.debug, "Searching KB for %@", nodeName)
         #endif
         
         do {
-            try ICSBroker.shared.getAnswers(contentType: contentType, titleSearch: titleSearches, limit: 50, offset: 0, completion: { result in
+            try (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getAnswers(contentType: contentType, titleSearch: titleSearches, limit: 50, offset: 0, completion: { result in
                 switch result {
                 case .success(let data):
                     guard let answers = data.items else { completion(nil); return }
@@ -813,37 +943,65 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         guard let nodeName = self.nodeName else { completion(nil); return }
         
         #if DEBUG
-        os_log("Getting node data for %@", nodeName)
+        os_log(.debug, "Getting node data for %@", nodeName)
         #endif
         
-        ICSBroker.shared.getNodeData(nodeName: nodeName, completion: { result in
+        (UIApplication.shared.delegate as? AppDelegate)?.integrationBroker?.getNodeData(nodeName: nodeName, completion: { (result) in
             switch result {
             case .success(let data):
                 completion(data)
                 break
-            default:
+            case .failure(let failure):
+                failure.log()
                 completion(nil)
                 break
             }
         })
     }
     
+    /**
+     Gets the notes array for the node that was selected.
+     
+     - Parameter nodeContext: The node context object of the node.
+     - Parameter completion: The completion called after the API call is performed.
+     - Parameter notes: The array of notes returned by the API call.
+    */
+    private func getNotesForNode(_ nodeContext: ARNodeContext, completion: @escaping (_ notes: [Note]?) -> ()) {
+        guard let deviceId = self.deviceId else { completion(nil); return }
+        
+        do {
+            try (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getNotes(deviceId: deviceId, nodeName: nodeContext.name, completion: { result in
+                switch result {
+                case .success(let data):
+                    completion(data.items)
+                    break
+                default:
+                    completion(nil)
+                    break
+                }
+            })
+        } catch {
+            completion(nil)
+        }
+    }
+    
     // MARK: - Chart Methods
     
     /**
-     Retrieves the last 50 entries from IoTCS to display in the chart view.
+     Retrieves the last number of entries from IoTCS to display in the chart view based on how many are defined in self.chartEntriesToShow.
      
      - Parameter chartCell: The tableviewcell that will contain the chartview, objects, and related data.
      - Parameter completion: A callback that is called once the IoTCS request is complete and the chart is updated.
     */
     private func getIoTHistory(chartCell: LineChartTableViewCell, completion: (() -> ())?) {
+        guard let appId = self.applicationId else { completion?(); return }
         guard let deviceId = self.deviceId else { completion?(); return }
         guard let arNodeContext = self.arNodeContext else { completion?(); return }
         guard let sensors = arNodeContext.sensors else { completion?(); return }
         
         self.chartData = LineChartData()
         
-        ICSBroker.shared.getHistoricalDeviceMessages(deviceId, completion: { result in
+        (UIApplication.shared.delegate as! AppDelegate).integrationBroker.getHistoricalDeviceMessages(appId, deviceId, completion: { result in
             var items: [SensorMessage]?
             
             switch result {
@@ -887,7 +1045,7 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
                 }
                 
                 for (itemsIndex, message) in items!.enumerated() {
-                    let val: Double = message.payload?.data?[sensorName] ?? 0.0
+                    let val: Double = message.payload?.data?[sensorName] as? Double ?? 0.0
                     
                     let i = Double(itemsIndex)
                     
@@ -914,7 +1072,7 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
             }
             
             completion?()
-        }, limit: 50)
+        }, limit: self.chartEntriesToShow)
     }
     
     /**
@@ -954,14 +1112,16 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
         
         for dataSet in sensorDataSets {
             // remove the first value from each set
-            _ = dataSet.remove(at: 0)
-            shiftXAxis(dataSet)
+            if dataSet.count > self.chartEntriesToShow {
+                _ = dataSet.remove(at: 0)
+                shiftXAxis(dataSet)
+            }
             
             // ensure that the dataset has a label that we can map to a sensor value
             guard let label = dataSet.label else { continue }
             
             // add the new value
-            let val = message.payload?.data?[label] ?? 0.0
+            let val = message.payload?.data?[label] as? Double ?? 0.0
             let i = Double(dataSet.count)
             _ = dataSet.append(ChartDataEntry(x: i, y: val))
         }
@@ -983,22 +1143,17 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
      */
     @objc func hideSectionHandler(_ sender: UIButton) {
         let section = sender.tag
-        let cell = tableView.headerView(forSection: section)
-        let button = cell?.subviews.compactMap { $0 as? UIButton }.first
         
         if self.hiddenSections.contains(section) {
             #if DEBUG
-            os_log("Showing section %@", section.description)
+            os_log(.debug, "Showing section %@", section.description)
             #endif
             
             guard let index = self.hiddenSections.firstIndex(of: section) else { return }
             self.hiddenSections.remove(at: index)
-            
-            button?.setTitle("Hide", for: .normal)
-            
         } else {
             #if DEBUG
-            os_log("Hiding section %@", section.description)
+            os_log(.debug, "Hiding section %@", section.description)
             #endif
             
             var paths: [IndexPath] = []
@@ -1006,7 +1161,7 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
             let count = tableView.numberOfRows(inSection: section)
             
             #if DEBUG
-            os_log("Will hide %d rows.", count)
+            os_log(.debug, "Will hide %d rows.", count)
             #endif
             
             repeat {
@@ -1017,8 +1172,6 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
             } while rowIndex < count
             
             self.hiddenSections.append(section)
-            
-            button?.setTitle("Show", for: .normal)
         }
         
         self.tableView.reloadData()
@@ -1053,8 +1206,10 @@ class NodeContextViewController: UIViewController, ContextViewController, UITabl
     */
     @objc private func imageTapped(_ sender: UITapGestureRecognizer) {
         #if DEBUG
-        os_log("Image Tapped")
+        os_log(.debug, "Image Tapped")
         #endif
+        
+        AppEventRecorder.shared.record(name: "Context Node Image Pressed", eventStart: Date(), eventEnd: nil, eventLength: 0.0, uiElement: String(describing: type(of: sender.self)), arAnchor: nil, arNode: self.nodeName, jsonString: nil, completion: nil)
         
         guard let imageCell = sender.view as? UICollectionViewCell else { return }
         guard let collection = imageCell.superview as? UICollectionView else { return }

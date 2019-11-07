@@ -14,12 +14,10 @@
 import UIKit
 import PDFKit
 
-class PDFViewController: OverlayViewController {
+class PDFViewController: UIViewController {
     
     // MARK: - IBOutlets
     
-    @IBOutlet weak var navigationBar: UINavigationBar!
-    @IBOutlet weak var backButton: UIBarButtonItem!
     @IBOutlet weak var pdfView: PDFView!
     
     // MARK: - Properties
@@ -30,13 +28,17 @@ class PDFViewController: OverlayViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        self.view.backgroundColor = self.traitCollection.userInterfaceStyle == .light ? .white : .black
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         guard let document = self.pdfDoc else {
-            overlayDelegate?.closeRequested(sender: self.view)
+            if let navVc = self.parent as? OverlayNavigationController {
+                navVc.overlayDelegate?.closeRequested(sender: navVc.view)
+            }
             return
         }
         
@@ -49,6 +51,7 @@ class PDFViewController: OverlayViewController {
     // MARK: - IBActions
     
     @IBAction func backButton(_ sender: Any) {
-        overlayDelegate?.closeRequested(sender: self.view)
+        guard let navVc = self.parent as? OverlayNavigationController else { return }
+        navVc.overlayDelegate?.closeRequested(sender: navVc.view)
     }
 }

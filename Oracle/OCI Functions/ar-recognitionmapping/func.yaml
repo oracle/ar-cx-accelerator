@@ -1,0 +1,8 @@
+schema_version: 20180708
+name: ar-recognitionmapping
+version: 0.0.0
+runtime: node
+entrypoint: node src/index.js
+memory: 128
+build:
+- tsc

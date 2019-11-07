@@ -70,16 +70,6 @@
 		</dict>
 		<dict>
 			<key>Type</key>
-			<string>PSToggleSwitchSpecifier</string>
-			<key>Title</key>
-			<string>Offline Mode</string>
-			<key>Key</key>
-			<string>data_simulator</string>
-			<key>DefaultValue</key>
-			<false/>
-		</dict>
-		<dict>
-			<key>Type</key>
 			<string>PSMultiValueSpecifier</string>
 			<key>Title</key>
 			<string>IoT Message Request Interval</string>
@@ -89,7 +79,6 @@
 			<integer>5</integer>
 			<key>Titles</key>
 			<array>
-				<string>2.5</string>
 				<string>5</string>
 				<string>10</string>
 				<string>30</string>
@@ -97,7 +86,6 @@
 			</array>
 			<key>Values</key>
 			<array>
-				<real>2.5</real>
 				<integer>5</integer>
 				<integer>10</integer>
 				<integer>30</integer>
@@ -108,19 +96,33 @@
 			<key>Type</key>
 			<string>PSGroupSpecifier</string>
 			<key>Title</key>
-			<string>ICS Settings</string>
+			<string>OCI F(n) Settings</string>
 			<key>FooterText</key>
-			<string>If your ICS instance uses a port other than 443, then include it in the host name field.</string>
+			<string>Ensure that private key does not have a passphrase.</string>
 		</dict>
 		<dict>
 			<key>Type</key>
 			<string>PSTextFieldSpecifier</string>
 			<key>Title</key>
-			<string>Host Name</string>
+			<string>Application Details Endpoint</string>
 			<key>Key</key>
-			<string>ics_hostname</string>
-			<key>DefaultValue</key>
-			<string></string>
+			<string>oci_fn_app_endpoint</string>
+			<key>IsSecure</key>
+			<false/>
+			<key>KeyboardType</key>
+			<string>URL</string>
+			<key>AutocapitalizationType</key>
+			<string>None</string>
+			<key>AutocorrectionType</key>
+			<string>No</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSTextFieldSpecifier</string>
+			<key>Title</key>
+			<string>Tenancy OCID</string>
+			<key>Key</key>
+			<string>oci_tenancy_id</string>
 			<key>IsSecure</key>
 			<false/>
 			<key>KeyboardType</key>
@@ -134,35 +136,49 @@
 			<key>Type</key>
 			<string>PSTextFieldSpecifier</string>
 			<key>Title</key>
-			<string>Username</string>
+			<string>Authentication User OCID</string>
 			<key>Key</key>
-			<string>ics_username</string>
+			<string>oci_auth_user_id</string>
+			<key>IsSecure</key>
+			<false/>
+			<key>KeyboardType</key>
+			<string>Alphabet</string>
 			<key>AutocapitalizationType</key>
 			<string>None</string>
 			<key>AutocorrectionType</key>
 			<string>No</string>
-			<key>KeyboardType</key>
-			<string>Alphabet</string>
-			<key>IsSecure</key>
-			<false/>
-			<key>DefaultValue</key>
-			<string></string>
 		</dict>
 		<dict>
 			<key>Type</key>
 			<string>PSTextFieldSpecifier</string>
 			<key>Title</key>
-			<string>Password</string>
+			<string>Authentication Public Key Fingerprint</string>
 			<key>Key</key>
-			<string>ics_password</string>
+			<string>oci_pub_key_fingerprint</string>
+			<key>IsSecure</key>
+			<false/>
+			<key>KeyboardType</key>
+			<string>Alphabet</string>
+			<key>AutocapitalizationType</key>
+			<string>None</string>
+			<key>AutocorrectionType</key>
+			<string>No</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSTextFieldSpecifier</string>
+			<key>Title</key>
+			<string>Authentication Private Key</string>
+			<key>Key</key>
+			<string>oci_private_key</string>
 			<key>IsSecure</key>
 			<true/>
+			<key>KeyboardType</key>
+			<string>Alphabet</string>
 			<key>AutocapitalizationType</key>
 			<string>None</string>
 			<key>AutocorrectionType</key>
 			<string>No</string>
-			<key>KeyboardType</key>
-			<string>Alphabet</string>
 		</dict>
 	</array>
 </dict>

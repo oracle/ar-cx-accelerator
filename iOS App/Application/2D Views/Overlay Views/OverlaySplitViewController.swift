@@ -27,6 +27,8 @@ class OverlaySplitViewController: UISplitViewController {
      - Parameter sender: The button that sent the request
      */
     @IBAction func backHandler(_ sender: UIBarButtonItem) {
+        sender.logClick()
+        
         overlayDelegate?.closeRequested(sender: self.view)
     }
     
@@ -34,9 +36,11 @@ class OverlaySplitViewController: UISplitViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
+        self.logViewAppeared()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
-        
+        self.logViewDisappeared()
     }
 }

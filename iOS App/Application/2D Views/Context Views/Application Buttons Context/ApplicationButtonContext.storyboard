@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="FiI-XZ-Pkw">
-    <device id="ipad9_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="FiI-XZ-Pkw">
+    <device id="ipad9_7" orientation="portrait" layout="fullscreen" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15509"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -15,64 +14,17 @@
             <objects>
                 <viewController storyboardIdentifier="ApplicationButtonsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="FiI-XZ-Pkw" customClass="ApplicationButtonsViewController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" autoresizesSubviews="NO" contentMode="scaleToFill" id="pa7-3h-tKH">
-                        <rect key="frame" x="0.0" y="0.0" width="60" height="196"/>
+                        <rect key="frame" x="0.0" y="0.0" width="60" height="264"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
-                        <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rsc-Wr-BZY" customClass="GlobalButton" customModule="Augmented_CX" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="0.0" width="60" height="60"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="60" id="cpe-lY-lQH"/>
-                                    <constraint firstAttribute="height" constant="60" id="hqO-4K-p6f"/>
-                                </constraints>
-                                <state key="normal" image="ResetImage"/>
-                                <connections>
-                                    <action selector="resetButtonHandler:" destination="FiI-XZ-Pkw" eventType="touchUpInside" id="2WY-0S-Nq4"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gYs-6K-xpk" customClass="GlobalButton" customModule="Augmented_CX" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="68" width="60" height="60"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="60" id="UKS-rn-T57"/>
-                                    <constraint firstAttribute="height" constant="60" id="o3V-9r-gvB"/>
-                                </constraints>
-                                <state key="normal" image="HelpImage"/>
-                                <connections>
-                                    <action selector="helpButtonHandler:" destination="FiI-XZ-Pkw" eventType="touchUpInside" id="Mam-t3-1kW"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="a0D-eQ-zGB" userLabel="Share Button" customClass="GlobalButton" customModule="Augmented_CX" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="136" width="60" height="60"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="60" id="7hl-iE-OYA"/>
-                                    <constraint firstAttribute="height" constant="60" id="lVM-If-E3P"/>
-                                </constraints>
-                                <state key="normal" image="ShareImage"/>
-                                <connections>
-                                    <action selector="shareButtonHandler:" destination="FiI-XZ-Pkw" eventType="touchUpInside" id="uf0-Me-Z6q"/>
-                                </connections>
-                            </button>
-                        </subviews>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <constraints>
-                            <constraint firstItem="rsc-Wr-BZY" firstAttribute="top" secondItem="pa7-3h-tKH" secondAttribute="top" id="EIR-P8-M2J"/>
-                            <constraint firstItem="gYs-6K-xpk" firstAttribute="trailing" secondItem="17R-uJ-99J" secondAttribute="trailing" id="Iep-Wu-k4l"/>
-                            <constraint firstItem="rsc-Wr-BZY" firstAttribute="trailing" secondItem="17R-uJ-99J" secondAttribute="trailing" id="XRe-3N-HPS"/>
-                            <constraint firstItem="rsc-Wr-BZY" firstAttribute="trailing" secondItem="17R-uJ-99J" secondAttribute="trailing" id="ZHM-1X-VAm"/>
-                            <constraint firstItem="a0D-eQ-zGB" firstAttribute="top" secondItem="gYs-6K-xpk" secondAttribute="bottom" constant="8" id="gng-em-f41"/>
-                            <constraint firstItem="gYs-6K-xpk" firstAttribute="top" secondItem="rsc-Wr-BZY" secondAttribute="bottom" constant="8" id="jkN-gC-63a"/>
-                            <constraint firstItem="a0D-eQ-zGB" firstAttribute="trailing" secondItem="17R-uJ-99J" secondAttribute="trailing" id="qZi-fb-dz3"/>
-                        </constraints>
                         <viewLayoutGuide key="safeArea" id="17R-uJ-99J"/>
                     </view>
                     <nil key="simulatedTopBarMetrics"/>
                     <nil key="simulatedBottomBarMetrics"/>
                     <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
-                    <size key="freeformSize" width="60" height="196"/>
+                    <size key="freeformSize" width="60" height="264"/>
                     <connections>
-                        <outlet property="helpButton" destination="gYs-6K-xpk" id="4NN-2v-xtN"/>
-                        <outlet property="resetButton" destination="rsc-Wr-BZY" id="BRk-2G-mOb"/>
-                        <outlet property="shareButton" destination="a0D-eQ-zGB" id="7BU-aY-dhe"/>
                         <outlet property="view" destination="pa7-3h-tKH" id="q9w-AB-Axz"/>
                     </connections>
                 </viewController>
@@ -80,10 +32,53 @@
             </objects>
             <point key="canvasLocation" x="44.53125" y="48.92578125"/>
         </scene>
+        <!--Chat Options View Controller-->
+        <scene sceneID="b4S-nF-Tsu">
+            <objects>
+                <viewController storyboardIdentifier="ChatOptionsViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="ZSs-x2-huG" customClass="ChatOptionsViewController" customModule="Augmented_CX" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="d4a-jx-LfN">
+                        <rect key="frame" x="0.0" y="0.0" width="200" height="200"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="3Cr-lK-GvF">
+                                <rect key="frame" x="0.0" y="10" width="200" height="180"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="chatTypeCell" id="9LS-yf-bqz">
+                                        <rect key="frame" x="0.0" y="28" width="200" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="9LS-yf-bqz" id="ghg-5E-GA6">
+                                            <rect key="frame" x="0.0" y="0.0" width="200" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="ZSs-x2-huG" id="pY1-QP-uwQ"/>
+                                    <outlet property="delegate" destination="ZSs-x2-huG" id="Jys-SB-oxB"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" name="OverlayBackgroundColor"/>
+                        <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <viewLayoutGuide key="safeArea" id="NgB-iE-l4q"/>
+                    </view>
+                    <size key="freeformSize" width="200" height="200"/>
+                    <connections>
+                        <outlet property="tableView" destination="3Cr-lK-GvF" id="wXg-jT-wlv"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="uOB-Cb-TUd" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="244.53125" y="48.6328125"/>
+        </scene>
     </scenes>
     <resources>
-        <image name="HelpImage" width="128" height="128"/>
-        <image name="ResetImage" width="128" height="128"/>
-        <image name="ShareImage" width="128" height="128"/>
+        <namedColor name="OverlayBackgroundColor">
+            <color red="0.0" green="0.0" blue="0.0" alpha="0.69999998807907104" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>

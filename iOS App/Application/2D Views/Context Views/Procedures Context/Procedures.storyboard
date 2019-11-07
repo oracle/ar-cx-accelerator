@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14490.70" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
-    <device id="retina4_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15400" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14490.49"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15404"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="OracleSans_Lt.ttf">
+            <string>OracleSans-Light</string>
+        </array>
+        <array key="OracleSans_Rg.ttf">
+            <string>OracleSans-Regular</string>
+        </array>
+        <array key="fa-regular-400.ttf">
+            <string>FontAwesome5Free-Regular</string>
+        </array>
+        <array key="fa-solid-900.ttf">
+            <string>FontAwesome5Free-Solid</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--Procedures View Controller-->
         <scene sceneID="t12-3A-Tn7">
@@ -23,7 +35,7 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="27" id="kEn-Wg-QGT"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <fontDescription key="fontDescription" name="OracleSans-Regular" family="Oracle Sans" pointSize="22"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -31,50 +43,62 @@
                                 <rect key="frame" x="117" y="40" width="408" height="71"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <fontDescription key="fontDescription" type="system" weight="light" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="OracleSans-Light" family="Oracle Sans" pointSize="17"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mca-Dy-gU1">
-                                <rect key="frame" x="546" y="58" width="34" height="34"/>
+                                <rect key="frame" x="546" y="53" width="34" height="34"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="34" id="Bqf-i5-KGV"/>
                                     <constraint firstAttribute="height" constant="34" id="jsD-9h-Cxs"/>
                                 </constraints>
+                                <fontDescription key="fontDescription" name="FontAwesome5Free-Solid" family="Font Awesome 5 Free" pointSize="32"/>
                                 <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <state key="normal" image="RightArrow"/>
+                                <state key="normal" title=""/>
+                                <state key="disabled" title="">
+                                    <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
                                 <connections>
                                     <action selector="nextButtonHandler:" destination="nbp-F6-don" eventType="touchUpInside" id="vLf-Ei-eKN"/>
                                 </connections>
                             </button>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="8Gj-Xr-JH2">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="8Gj-Xr-JH2">
                                 <rect key="frame" x="8" y="10" width="101" height="101"/>
                                 <color key="tintColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="8Gj-Xr-JH2" secondAttribute="height" multiplier="1:1" id="Qvx-U5-EXL"/>
                                 </constraints>
                             </imageView>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S8k-G3-vGU">
+                            <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S8k-G3-vGU">
                                 <rect key="frame" x="544" y="13" width="39" height="22"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="22" id="hhi-aq-Q5a"/>
                                     <constraint firstAttribute="width" constant="39" id="sQg-m0-FoM"/>
                                 </constraints>
-                                <state key="normal" title="Close">
+                                <fontDescription key="fontDescription" name="FontAwesome5Free-Regular" family="Font Awesome 5 Free" pointSize="19"/>
+                                <state key="normal" title="">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
-                                <state key="disabled" title="Close">
+                                <state key="disabled" title="">
                                     <color key="titleColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                                 <connections>
                                     <action selector="closeButton:" destination="nbp-F6-don" eventType="touchUpInside" id="yCS-2X-eo8"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Timer" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UGk-rL-sRb">
+                                <rect key="frame" x="544" y="95" width="39" height="16"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMinY="YES"/>
+                                <fontDescription key="fontDescription" name="OracleSans-Regular" family="Oracle Sans" pointSize="12"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.5" colorSpace="custom" customColorSpace="displayP3"/>
                         <constraints>
                             <constraint firstItem="U30-6t-tt2" firstAttribute="trailing" secondItem="S8k-G3-vGU" secondAttribute="trailing" constant="17" id="0hC-RN-wAJ"/>
                             <constraint firstItem="aNe-9L-S4d" firstAttribute="top" secondItem="U30-6t-tt2" secondAttribute="top" constant="8" id="328-cb-at3"/>
-                            <constraint firstItem="mca-Dy-gU1" firstAttribute="top" secondItem="S8k-G3-vGU" secondAttribute="bottom" constant="23" id="4mY-p3-Xba"/>
+                            <constraint firstItem="mca-Dy-gU1" firstAttribute="top" secondItem="S8k-G3-vGU" secondAttribute="bottom" constant="18" id="4mY-p3-Xba"/>
                             <constraint firstItem="BH9-BJ-Yf5" firstAttribute="top" secondItem="aNe-9L-S4d" secondAttribute="bottom" constant="5" id="9iW-Ay-lUS"/>
                             <constraint firstItem="S8k-G3-vGU" firstAttribute="leading" secondItem="aNe-9L-S4d" secondAttribute="trailing" constant="19" id="T51-uU-iKY"/>
                             <constraint firstItem="BH9-BJ-Yf5" firstAttribute="leading" secondItem="8Gj-Xr-JH2" secondAttribute="trailing" constant="8" id="W0u-Nv-zAG"/>
@@ -102,6 +126,7 @@
                         <outlet property="panRecognizer" destination="hHB-Bo-VRF" id="v2z-8C-Pdo"/>
                         <outlet property="stepContentTextArea" destination="BH9-BJ-Yf5" id="Yh4-av-uE6"/>
                         <outlet property="stepTitleLabel" destination="aNe-9L-S4d" id="hfP-Xc-O62"/>
+                        <outlet property="timerLabel" destination="UGk-rL-sRb" id="EGK-Be-XIx"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oVJ-aw-kQR" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -115,7 +140,4 @@
             <point key="canvasLocation" x="-355.19999999999999" y="411.99400299850078"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="RightArrow" width="128" height="128"/>
-    </resources>
 </document>

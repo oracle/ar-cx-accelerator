@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="ywp-8W-WeK">
-    <device id="ipad11_0rounded" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15400" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="ywp-8W-WeK">
+    <device id="ipad11_0rounded" orientation="portrait" layout="fullscreen" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14460.20"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15404"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
+    <customFonts key="customFonts">
+        <array key="OracleSans_Rg.ttf">
+            <string>OracleSans-Regular</string>
+        </array>
+    </customFonts>
     <scenes>
         <!--Activity Overlay View Controller-->
         <scene sceneID="WKP-fu-ZEd">
@@ -21,17 +25,18 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="wVC-ox-XDt">
                                 <rect key="frame" x="20" y="479.5" width="728" height="65"/>
                                 <subviews>
-                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="NrX-P5-BuC">
+                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" animating="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="NrX-P5-BuC">
                                         <rect key="frame" x="357" y="8" width="14" height="20"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="20" id="g5U-bM-PJT"/>
                                             <constraint firstAttribute="width" constant="14" id="vTC-pM-kp2"/>
                                         </constraints>
+                                        <color key="color" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </activityIndicatorView>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Performing Activity" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FqT-EH-5Hb">
-                                        <rect key="frame" x="290.5" y="36" width="147" height="21"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <rect key="frame" x="292" y="36" width="144" height="21"/>
+                                        <fontDescription key="fontDescription" name="OracleSans-Regular" family="Oracle Sans" pointSize="17"/>
+                                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <nil key="highlightedColor"/>
                                     </label>
                                 </subviews>
@@ -47,7 +52,7 @@
                                 </constraints>
                             </view>
                         </subviews>
-                        <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.5" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" name="OverlayBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="rrT-9I-RRR" firstAttribute="trailing" secondItem="wVC-ox-XDt" secondAttribute="trailing" constant="20" id="UCl-By-tW4"/>
                             <constraint firstItem="wVC-ox-XDt" firstAttribute="centerY" secondItem="XcV-DK-zrn" secondAttribute="centerY" id="VHO-8s-G7V"/>
@@ -67,4 +72,9 @@
             <point key="canvasLocation" x="-671.09375" y="2861.71875"/>
         </scene>
     </scenes>
+    <resources>
+        <namedColor name="OverlayBackgroundColor">
+            <color red="0.0" green="0.0" blue="0.0" alpha="0.69999998807907104" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
 </document>

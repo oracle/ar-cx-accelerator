@@ -14,21 +14,31 @@
 import Foundation
 
 /**
- Enum that maps UserDefaults keys to for application settings
- */
-enum AppConfigs: String {
-    case dataSimulator = "data_simulator",
-    noAppSleep = "no_sleep",
-    showHelpOnAppStart = "show_help_on_start"
-}
-
-/**
  Enum that maps UserDefaults keys to for ICS settings
  */
 enum ICSConfigs: String {
     case hostname = "ics_hostname",
     username = "ics_username",
     password = "ics_password"
+}
+
+/**
+ Enum that defines the integration configuration options for OCI F(n) services.
+*/
+enum OciFnConfigs: String {
+    case arFnApplicationDetailsEndpoint = "oci_fn_app_endpoint",
+    tenancyId = "oci_tenancy_id",
+    authUserId = "oci_auth_user_id",
+    publicKeyFingerprint = "oci_pub_key_fingerprint",
+    privateKey = "oci_private_key"
+}
+
+/**
+ Enum that maps UserDefaults keys to for CX Inifinity settings
+ */
+enum InfinityConfigs: String {
+    case hostname = "infinity_hostname",
+    backendid = "infinity_backendid"
 }
 
 /**
@@ -46,8 +56,14 @@ enum ServiceRequestDeepLinkFormat: String {
     case serviceCloud = "https://%@/AgentWeb/Bookmark/Incident/%@"
 }
 
+/// Defines applicable links in the Oracle App Store
+enum OracleAppStore: String {
+    case appPage = "https://bit.ly/augmented-cx",
+    appPageDirect = "https://mobileappstore.oracleads.com:7777/store#/index/5bc4dc66103c56624a3e0124"
+}
+
 /**
- Struct that defines the server configs object that will be returned from ICSBroker.
+ Struct that defines the server configs object that will be returned from IntegrationBroker.
  */
 struct ServerConfigs: Decodable {
     
@@ -57,16 +73,11 @@ struct ServerConfigs: Decodable {
     var service: Service?
     
     /**
-     Variable that stores the IoT data as mapped by the server configs JSON structure.
-     */
-    var iot: IoT?
-    
-    /**
      Struct to define the "service" object defined in server configs.
      */
     struct Service: Decodable {
         /**
-         Enum to define the service applications that are supported in the configs and used in the HTTP header for requests to ICSBroker.
+         Enum to define the service applications that are supported in the configs and used in the HTTP header for requests to IntegrationBroker.
          */
         enum Application : String, Codable {
             case engagementCloud = "ec"
@@ -95,18 +106,5 @@ struct ServerConfigs: Decodable {
          The contact ID that will be used to assign service requests to as defined in the server configs.
          */
         var contactId: Int?
-    }
-    
-    struct IoT: Decodable {
-        /**
-         We pull the application ID from a server config until this app has the ability to scan a device and determine unique Ids from the device.
-         */
-        var applicationId: String?
-        
-        //TODO: Implement a scanning process to identify not only the physical object for AR, but also the serial number for a unique device.
-        /**
-         We pull the device ID from a server config until this app has the ability to scan a device and determine unique Ids from the device.
-         */
-        var deviceId: String?
     }
 }

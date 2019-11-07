@@ -1,0 +1,16 @@
+schema_version: 20180708
+name: ec-proxy
+version: 0.0.0
+runtime: node
+entrypoint: node src/index.js
+memory: 128
+build:
+- tsc
+expects:
+  config:
+  - name: hostname
+    required: true
+  - name: username
+    required: true
+  - name: password
+    required: true

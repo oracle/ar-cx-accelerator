@@ -18,14 +18,12 @@ class HelpViewController: OverlayViewController {
     
     // MARK: - IBOutlets
     
-    @IBOutlet weak var navigationBar: UINavigationBar!
-    @IBOutlet weak var backButton: UIBarButtonItem!
     @IBOutlet weak var webView: WKWebView!
     
     // MARK: - UIViewController Methods
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidLoad() {
+        super.viewDidLoad()
         
         guard let url = Bundle.main.url(forResource: "help", withExtension: "html") else { return }
         let request = URLRequest(url: url)
@@ -35,7 +33,8 @@ class HelpViewController: OverlayViewController {
     // MARK: - IBActions
     
     @IBAction func backButtonHandler(_ sender: Any) {
-        overlayDelegate?.closeRequested(sender: self.view)
+        guard let parent = self.parent as? OverlayNavigationController else { return }
+        parent.overlayDelegate?.closeRequested(sender: parent.view)
     }
     
 }

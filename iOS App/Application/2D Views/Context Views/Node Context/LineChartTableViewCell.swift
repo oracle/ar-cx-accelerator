@@ -27,6 +27,24 @@ class LineChartTableViewCell: UITableViewCell {
         case red, blue, green, yellow
     }
     
+    // MARK: - Initializer
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+    }
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        
+        if #available(iOS 13.0, *) {
+            self.activityIndicator.style = .medium
+        } else {
+            self.activityIndicator.style = traitCollection.userInterfaceStyle == .light ? .gray : .white
+        }
+    }
+    
+    // MARK: - Data Set Methods
+    
     /**
      A red data chart dataset and its configuration.
      
