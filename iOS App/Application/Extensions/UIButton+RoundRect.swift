@@ -119,7 +119,7 @@ extension UIButton {
         attributedText.addAttribute(.foregroundColor, value: textColor, range: NSRange(location: 0, length: attributedText.length))
         
         let tinyFont = UIFont.systemFont(ofSize: 4)
-        guard let oracleFont = UIFont(name: OracleSans.regular.rawValue, size: fontSize) else { throw RoundRectButtonError.oracleSansError }
+        let oracleFont = UIFont.systemFont(ofSize: fontSize)
         
         // Use FontAwesome for first character
         attributedText.addAttribute(.font, value: iconFont, range: NSRange(location: 0, length: 1))

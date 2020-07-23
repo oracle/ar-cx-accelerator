@@ -170,10 +170,6 @@ class AppEventSender {
         infinityEvent.arAnchor = event.arAnchor
         infinityEvent.arData = event.jsonData
         infinityEvent.uiElement = event.uiElement
-        infinityEvent.arDemoPerson = UserDefaults.standard.string(forKey: AppConfigs.demoPersonName.rawValue)
-        infinityEvent.arDemoPersonEmail = UserDefaults.standard.string(forKey: AppConfigs.demoPersonEmail.rawValue)
-        infinityEvent.arDemoName = UserDefaults.standard.string(forKey: AppConfigs.demoName.rawValue)
-        infinityEvent.arDemoOrg = UserDefaults.standard.string(forKey: AppConfigs.demoOrg.rawValue)
         
         let request = InfinityRequest(staticProps: nil, events: [infinityEvent])
         

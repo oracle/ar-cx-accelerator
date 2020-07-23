@@ -197,14 +197,3 @@ protocol RemoteIntegrationBroker {
      */
     func deleteNote(modelNodeId: Int, noteId: Int, completion: @escaping (Result<Bool, IntegrationBrokerError>) -> ()) throws
 }
-
-extension RemoteIntegrationBroker {
-    #warning("DEMO_ONLY: Remove chat content for accelerator.")
-    func createChatMessage(message: ChatMessageRequest, completion: @escaping (Result<ChatMessageArrayResponse, IntegrationBrokerError>) -> ()) {
-        //Text chat is currently implemented as demo through this app.  An integration will be added at a later date.
-        //TODO: Move chat function(s) to an application / API that can serve the request dynamically.
-        guard let messages = DataSimulator.performGet(object: ChatMessageArrayResponse.self) else { completion(.failure(.noDataReturned)); return }
-        completion(.success(messages))
-        return
-    }
-}

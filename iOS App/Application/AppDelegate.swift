@@ -67,6 +67,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     // MARK: - UIApplicationDelegate Methods
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // AppConfigs assumes that the implementor has implemented an enum or struct that brokers configuration content from settings, coredata, or other storage.
         if UserDefaults.standard.object(forKey: AppConfigs.noAppSleep.rawValue) == nil {
             UserDefaults.standard.set(true, forKey: AppConfigs.noAppSleep.rawValue)
         }

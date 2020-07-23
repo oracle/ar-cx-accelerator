@@ -12,8 +12,6 @@
 // 
 
 import UIKit
-#warning("Uncomment when LX supports Swift 5.1 and removes x386 support in dependent frameworks that brake IPA distribution in Xcode 11.")
-//import OracleLive
 
 class OverlayNavigationController: UINavigationController {
     
@@ -38,10 +36,6 @@ class OverlayNavigationController: UINavigationController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
-        #warning("Uncomment when LX supports Swift 5.1 and removes x386 support in dependent frameworks that brake IPA distribution in Xcode 11.")
-        //Controller.shared.addComponent(viewController: self)
-        //Controller.shared.settings.startVideoWithFrontCamera = true
         
         self.logViewAppeared()
     }
