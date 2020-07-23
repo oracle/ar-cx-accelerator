@@ -28,13 +28,6 @@ DerivedData/
 ## Mac Files
 .DS_Store
 
-## Don't track large CAD files
-**/art.scnassets/**/*.jpg
-**/art.scnassets/**/*.png
-**/art.scnassets/**/*.gif
-*.scn
-*.dae
-
 ## Fonts
 #Fonts/*
 #*.ttf

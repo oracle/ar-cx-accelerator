@@ -67,9 +67,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     // MARK: - UIApplicationDelegate Methods
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // AppConfigs assumes that the implementor has implemented an enum or struct that brokers configuration content from settings, coredata, or other storage.
-        if UserDefaults.standard.object(forKey: AppConfigs.noAppSleep.rawValue) == nil {
-            UserDefaults.standard.set(true, forKey: AppConfigs.noAppSleep.rawValue)
+        if UserDefaults.standard.object(forKey: "no_sleep") == nil {
+            UserDefaults.standard.set(true, forKey: "no_sleep")
         }
 
         #error("Setting credentials in this manner is insecure and included for example purposes only as part of this accelerator.")
@@ -174,20 +173,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         
-        let integrationBackEnd = UserDefaults.standard.string(forKey: AppConfigs.integrationBackEnd.rawValue)
-        switch integrationBackEnd {
-        case "oci":
-            self.integrationBroker = OciBroker.shared
-            // Ensure that settings are reloaded when app becomes active in case someone changed the settings while app was closed.
-            OciBroker.shared.reloadCredentialsFromSettings()
-            break
-        // If there were other integration brokers to consider, then implement them here.
-        default:
-            self.integrationBroker = OciBroker.shared
-            // Ensure that settings are reloaded when app becomes active in case someone changed the settings while app was closed.
-            OciBroker.shared.reloadCredentialsFromSettings()
-            break
-        }
+        self.integrationBroker = OciBroker.shared
+        // Ensure that settings are reloaded when app becomes active in case someone changed the settings while app was closed.
+        OciBroker.shared.reloadCredentialsFromSettings()
 
         // Create a long-term event to track the length of time that the app was active
         guard let event = try? AppEventRecorder.shared.getEvent(name: "Application Active") else { return }
